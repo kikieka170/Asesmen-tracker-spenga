@@ -281,9 +281,10 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Materi/Topik</label>
                     <input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma">
                 </div>
+                <!-- UPDATED NOTE INPUT -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Catatan Umum</label>
-                    <input type="text" id="import-note" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Tuntas / Perlu Remedial">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Catatan Umum (Opsional)</label>
+                    <input type="text" id="import-note" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Biarkan kosong untuk generate catatan otomatis berdasarkan nilai">
                 </div>
             </div>
 
@@ -740,7 +741,7 @@
             const subject = document.getElementById('import-subject').value;
             const type = document.getElementById('import-type').value;
             const topic = document.getElementById('import-topic').value;
-            const note = document.getElementById('import-note').value;
+            const globalNote = document.getElementById('import-note').value; // Get global note
 
             if(!raw) return alert("Data kosong");
             if(!subject || !type) return alert("Harap pilih Mapel dan isi Jenis Asesmen.");
@@ -757,14 +758,24 @@
                         if(row.NISN && row.Nilai) {
                             const s = STUDENTS.find(x => x.nis === row.NISN.toString().trim());
                             if(s) {
+                                const score = parseFloat(row.Nilai);
+                                let finalNote = globalNote;
+
+                                // Auto-generate note if global note is empty
+                                if (!finalNote) {
+                                    if (score >= 91) finalNote = "Sangat Baik! Pertahankan prestasimu.";
+                                    else if (score >= 75) finalNote = "Kompetensi Tercapai (Tuntas).";
+                                    else finalNote = "Perlu Perbaikan / Remedial.";
+                                }
+
                                 const ref = db.collection('grades').doc();
                                 batch.set(ref, { 
                                     studentId: s.id, 
                                     subject: subject,
                                     topic: topic || "Topik Umum", 
                                     type: type, 
-                                    score: parseFloat(row.Nilai), 
-                                    note: note || 'Tuntas', 
+                                    score: score, 
+                                    note: finalNote, 
                                     date: new Date().toISOString() 
                                 });
                                 count++;
