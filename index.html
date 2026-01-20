@@ -11,6 +11,9 @@
     <!-- Lucide Icons (Via CDN) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- PapaParse (Untuk Baca CSV) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
     <!-- Firebase SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -24,17 +27,16 @@
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         ::selection { background-color: #facc15; color: black; }
         /* Loader Overlay */
-        #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        .hidden-input { display: none; }
     </style>
 </head>
 <body class="bg-white text-gray-900 flex flex-col min-h-screen">
 
     <!-- LOADER -->
     <div id="loader">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mb-4 mx-auto"></div>
-            <p class="text-blue-900 font-bold animate-pulse">Menghubungkan ke Database...</p>
-        </div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-yellow-400 mb-4"></div>
+        <p class="text-blue-900 font-bold animate-pulse" id="loader-text">Menghubungkan ke Database...</p>
     </div>
 
     <!-- NAVIGASI -->
@@ -180,9 +182,14 @@
             
             <!-- STUDENTS PANEL -->
             <div id="admin-panel-students" class="space-y-4 hidden">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3>
-                    <button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button>
+                    <div class="flex gap-2">
+                        <input type="file" id="csv-student-import" accept=".csv" class="hidden-input" onchange="handleStudentCSVUpload(this)">
+                        <button onclick="triggerStudentImport()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Import dari Excel/CSV</button>
+                        <button onclick="downloadStudentTemplate()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-lg font-bold text-xs" title="Download Template CSV"><i data-lucide="download" class="w-4 h-4"></i></button>
+                        <button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button>
+                    </div>
                 </div>
                 
                 <!-- SEARCH BAR -->
@@ -668,6 +675,101 @@
         }
         function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
         function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+
+        // --- NEW FEATURES: STUDENT IMPORT ---
+        function triggerStudentImport() {
+            document.getElementById('csv-student-import').click();
+        }
+
+        function downloadStudentTemplate() {
+            const csv = "Nama,NISN,Kelas\nBudi Santoso,123456,7A\nSiti Aminah,123457,7B\n";
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = "Template_Import_Siswa.csv"; a.click();
+        }
+
+        function handleStudentCSVUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Show loading
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader').style.opacity = '1';
+            document.getElementById('loader-text').innerText = "Sedang Mengupload Data Siswa...";
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async function(results) {
+                    const data = results.data;
+                    if (data.length === 0) {
+                        alert("File kosong atau format salah.");
+                        hideLoader();
+                        return;
+                    }
+
+                    // Process in chunks of 200 to be safe (Firestore batch limit is 500 ops)
+                    // We do 2 ops per student (add to students, add to users) -> 250 max items per batch
+                    const chunkSize = 200; 
+                    for (let i = 0; i < data.length; i += chunkSize) {
+                        const chunk = data.slice(i, i + chunkSize);
+                        const batch = db.batch();
+
+                        chunk.forEach(row => {
+                            // Validate row has essential data
+                            if (row.Nama && row.NISN && row.Kelas) {
+                                // 1. Create Student Document
+                                const studentRef = db.collection('students').doc(); // Auto ID
+                                const studentData = {
+                                    name: row.Nama.trim(),
+                                    nis: row.NISN.toString().trim(),
+                                    class: row.Kelas.trim(),
+                                    username: row.NISN.toString().trim(), // Username = NISN
+                                    password: row.NISN.toString().trim(), // Password = NISN
+                                    role: 'student'
+                                };
+                                batch.set(studentRef, studentData);
+
+                                // 2. Create User Login Document (Optional, but good for login check consistency)
+                                // Only add if you use a separate 'users' collection for ALL logins.
+                                // Based on previous code, student login checks 'students' collection directly 
+                                // inside handleLoginSubmit, but teacher/admin checks 'users'.
+                                // So strictly speaking, we don't NEED to add to 'users' collection for students 
+                                // if the login logic uses the 'students' collection.
+                                // However, keeping 'users' clean for admin/teachers is fine.
+                                // Let's just stick to adding to 'students' collection which has username/password fields now.
+                            }
+                        });
+
+                        try {
+                            await batch.commit();
+                            console.log(`Uploaded batch ${i/chunkSize + 1}`);
+                        } catch (error) {
+                            console.error("Error uploading batch: ", error);
+                            alert("Terjadi kesalahan saat upload sebagian data.");
+                        }
+                    }
+
+                    hideLoader();
+                    alert(`Berhasil mengimport ${data.length} data siswa!`);
+                    // Reset input
+                    input.value = '';
+                },
+                error: function(err) {
+                    hideLoader();
+                    alert("Gagal membaca file CSV: " + err.message);
+                }
+            });
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('loader-text').innerText = "Menghubungkan ke Database..."; // Reset text
+            }, 500);
+        }
+
     </script>
 </body>
 </html>
