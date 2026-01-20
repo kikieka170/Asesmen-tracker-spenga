@@ -123,7 +123,7 @@
                 <form onsubmit="handleGradeSubmit(event)" class="grid md:grid-cols-2 gap-6">
                     <input type="hidden" id="edit-id" value="">
                     
-                    <!-- NEW: SELECT CLASS FIRST -->
+                    <!-- SELECT CLASS FIRST -->
                     <div class="md:col-span-2 grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Langkah 1: Pilih Kelas</label>
@@ -247,7 +247,13 @@
                 <button onclick="setLoginRole('teacher')" id="tab-teacher" class="flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors">STAF / GURU</button>
             </div>
             <form onsubmit="handleLoginSubmit(event)" class="p-6 space-y-4">
-                <div id="login-student-wrapper" class="space-y-2"><label class="text-sm font-bold text-gray-700">Nama Siswa</label><select id="login-student-id" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none"><option value="">-- Pilih Nama Anda --</option></select></div>
+                
+                <!-- SISWA LOGIN (INPUT TEKS) -->
+                <div id="login-student-wrapper" class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">NISN Siswa</label>
+                    <input type="text" id="login-student-nis" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Masukkan NISN Siswa...">
+                </div>
+                
                 <div id="login-teacher-wrapper" class="hidden space-y-4"><div class="space-y-2"><label class="text-sm font-bold text-gray-700">Username</label><input type="text" id="login-username" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Masukkan username..."></div></div>
                 <div class="space-y-2"><label class="text-sm font-bold text-gray-700">Password</label><div class="relative"><input type="password" id="login-password" class="w-full border-2 border-gray-200 rounded-xl p-3 pr-10 outline-none" placeholder="Masukkan kata sandi..." required><i data-lucide="lock" class="absolute right-3 top-3 text-gray-400 w-5 h-5"></i></div></div>
                 <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold py-3.5 rounded-xl shadow-lg">MASUK SEKARANG</button>
@@ -261,14 +267,35 @@
         <div class="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl relative animate-fade-in">
             <button onclick="closeImportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
             <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2"><i data-lucide="file-spreadsheet"></i> Import Nilai Kolektif</h2>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Pilih Mapel (Wajib)</label>
+                    <select id="import-subject" class="w-full border border-gray-300 rounded p-2 outline-none focus:border-blue-500"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Jenis Asesmen (Wajib)</label>
+                    <input type="text" id="import-type" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Sumatif 1">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Materi/Topik</label>
+                    <input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Catatan Umum</label>
+                    <input type="text" id="import-note" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Tuntas / Perlu Remedial">
+                </div>
+            </div>
+
             <div class="grid md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200"><h3 class="font-bold text-yellow-800 mb-2">1. Download Template</h3><button onclick="downloadGradeTemplate()" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Download Template Nilai</button></div>
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200"><h3 class="font-bold text-blue-900 mb-2">2. Contoh Format</h3><p class="text-xs text-gray-600 font-mono bg-white p-2 rounded border border-gray-200 overflow-x-auto whitespace-nowrap">NISN | Nama_Siswa | Nilai</p></div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200"><h3 class="font-bold text-blue-900 mb-2">2. Contoh Format</h3><p class="text-xs text-gray-600 font-mono bg-white p-2 rounded border border-gray-200 overflow-x-auto whitespace-nowrap">NISN | Nilai</p></div>
             </div>
+            
             <div class="space-y-3">
                 <label class="font-bold text-gray-700">Upload CSV / Paste:</label>
                 <input type="file" id="csv-file-input" accept=".csv, .txt" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="handleFileUpload(this)">
-                <textarea id="import-data" class="w-full h-40 border-2 border-gray-300 rounded-xl p-3 outline-none font-mono text-sm" placeholder="Paste data here (Header: NISN,Nama,Nilai)..."></textarea>
+                <textarea id="import-data" class="w-full h-40 border-2 border-gray-300 rounded-xl p-3 outline-none font-mono text-sm" placeholder="Paste data here (Header: NISN,Nilai)..."></textarea>
                 <div class="flex justify-end gap-3"><button onclick="closeImportModal()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">Batal</button><button onclick="processGradeImport()" class="bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg flex items-center gap-2"><i data-lucide="clipboard-paste" class="w-4 h-4"></i> Proses Data</button></div>
             </div>
         </div>
@@ -422,8 +449,8 @@
         // --- AUTH ---
         function openLoginModal() {
             document.getElementById('login-modal').classList.remove('hidden');
-            const select = document.getElementById('login-student-id');
-            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>' + STUDENTS.map(s => `<option value="${s.id}">${s.name} - ${s.class}</option>`).join('');
+            // Reset input text
+            document.getElementById('login-student-nis').value = '';
             setLoginRole('student');
         }
         function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
@@ -450,9 +477,15 @@
                 if (user) { currentUser = user; switchView(user.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard'); closeLoginModal(); } 
                 else { alert("Username atau Password Salah!"); }
             } else {
-                const id = document.getElementById('login-student-id').value;
-                if (!id) return alert("Pilih nama siswa");
-                const s = STUDENTS.find(x => x.id === id);
+                // NEW: Logic Input Text
+                const nisInput = document.getElementById('login-student-nis').value.trim();
+                if (!nisInput) return alert("Masukkan NISN Siswa");
+                
+                // Cari di array STUDENTS (sync dengan database)
+                const s = STUDENTS.find(x => x.nis === nisInput || x.username === nisInput);
+                
+                if (!s) return alert("NISN tidak ditemukan di database!");
+
                 if (s && (s.password === password || (!s.password && password === 'siswa123'))) {
                     currentUser = { role: 'student', ...s };
                     switchView('student_dashboard');
@@ -538,33 +571,22 @@
 
         // --- GURU ---
         function fillFormSelects() {
-            // Fill Class Dropdown First
             const classes = [...new Set(STUDENTS.map(s => s.class))].sort();
             document.getElementById('input-class-filter').innerHTML = '<option value="">-- Pilih Kelas --</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            // Subjects & Types (Standard)
             document.getElementById('input-subject').innerHTML = SUBJECTS.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
             document.getElementById('input-type').innerHTML = ASSESSMENT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+            // Open Import Modal Subject
+            document.getElementById('import-subject').innerHTML = '<option value="">-- Pilih Mapel --</option>' + SUBJECTS.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
         }
 
         function filterStudentsByClass() {
             const cls = document.getElementById('input-class-filter').value;
             const input = document.getElementById('input-student-search');
             const datalist = document.getElementById('student-options');
-
-            input.value = ''; // Reset
-            datalist.innerHTML = ''; // Clear options
-
-            if (!cls) {
-                input.disabled = true;
-                return;
-            }
-
+            input.value = ''; datalist.innerHTML = '';
+            if (!cls) { input.disabled = true; return; }
             input.disabled = false;
-            // Filter students by class and sort alphabetically
             const filtered = STUDENTS.filter(s => s.class === cls).sort((a, b) => a.name.localeCompare(b.name));
-            
-            // Populate datalist with NISN - Name format to ensure uniqueness
             datalist.innerHTML = filtered.map(s => `<option value="${s.nis} - ${s.name}">`).join('');
         }
 
@@ -575,15 +597,10 @@
         function autoGenerateAI() {
             const inputValue = document.getElementById('input-student-search').value;
             const score = parseFloat(document.getElementById('input-score').value);
-            
             if(!inputValue || isNaN(score)) return alert("Isi nama siswa dan nilai dulu.");
-            
-            // Resolve ID from Input (NISN - Name)
             const nisn = inputValue.split(' - ')[0];
             const s = STUDENTS.find(x => x.nis === nisn);
-
             if (!s) return alert("Siswa tidak ditemukan valid.");
-
             let note = score >= 90 ? `Luar biasa! ${s.name} sangat menguasai materi.` : score >= 75 ? `Bagus. ${s.name} tuntas, tingkatkan lagi.` : `Perlu remedial agar ${s.name} tuntas.`;
             document.getElementById('input-note').value = note;
         }
@@ -592,18 +609,11 @@
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
             const inputValue = document.getElementById('input-student-search').value;
-            
-            // Extract NISN from input value "12345 - Budi"
             const nisn = inputValue.split(' - ')[0];
             const s = STUDENTS.find(x => x.nis === nisn);
-
-            if (!s) {
-                alert("Data siswa tidak valid. Harap pilih dari daftar.");
-                return;
-            }
-
+            if (!s) { alert("Data siswa tidak valid. Harap pilih dari daftar."); return; }
             const data = {
-                studentId: s.id, // Store Firestore ID
+                studentId: s.id,
                 subject: document.getElementById('input-subject').value,
                 type: document.getElementById('input-type').value,
                 topic: document.getElementById('input-topic').value,
@@ -631,18 +641,11 @@
         function editGrade(id) {
             const g = GRADES.find(x => x.id == id);
             const s = STUDENTS.find(x => x.id == g.studentId);
-            
             if (s) {
-                // Populate fields
                 document.getElementById('edit-id').value = g.id;
-                
-                // Set class and trigger filter
                 document.getElementById('input-class-filter').value = s.class;
                 filterStudentsByClass();
-                
-                // Set student search input
                 document.getElementById('input-student-search').value = `${s.nis} - ${s.name}`;
-                
                 document.getElementById('input-subject').value = g.subject;
                 document.getElementById('input-type').value = g.type;
                 document.getElementById('input-topic').value = g.topic;
@@ -707,7 +710,7 @@
 
         function downloadGradeTemplate() {
             // NEW: Specific for Grade Import
-            const csv = "NISN,Nama_Siswa,Nilai\n12345,Budi Santoso,90\n";
+            const csv = "NISN,Nilai\n12345,90\n";
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = "Template_Import_Nilai.csv"; a.click();
@@ -734,7 +737,13 @@
         function processGradeImport() {
             // Logic specifically for Grade Import Modal
             const raw = document.getElementById('import-data').value;
+            const subject = document.getElementById('import-subject').value;
+            const type = document.getElementById('import-type').value;
+            const topic = document.getElementById('import-topic').value;
+            const note = document.getElementById('import-note').value;
+
             if(!raw) return alert("Data kosong");
+            if(!subject || !type) return alert("Harap pilih Mapel dan isi Jenis Asesmen.");
             
             Papa.parse(raw, {
                 header: true,
@@ -751,11 +760,11 @@
                                 const ref = db.collection('grades').doc();
                                 batch.set(ref, { 
                                     studentId: s.id, 
-                                    subject: "Informatika", // Default subject if not in CSV, or prompt user? Assuming standard
-                                    topic: "Imported Grade", 
-                                    type: "Tugas", 
+                                    subject: subject,
+                                    topic: topic || "Topik Umum", 
+                                    type: type, 
                                     score: parseFloat(row.Nilai), 
-                                    note: 'Imported via CSV', 
+                                    note: note || 'Tuntas', 
                                     date: new Date().toISOString() 
                                 });
                                 count++;
@@ -778,7 +787,11 @@
         // Keeping processImport generic for student import if needed, but we used handleStudentCSVUpload there.
         // Let's ensure the Grade Import Modal calls processGradeImport.
 
-        function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
+        function openImportModal() { 
+            document.getElementById('import-modal').classList.remove('hidden');
+            // Populate Subject Dropdown in Modal
+            document.getElementById('import-subject').innerHTML = '<option value="">-- Pilih Mapel --</option>' + SUBJECTS.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        }
         function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
 
         // --- NEW FEATURES: STUDENT IMPORT ---
