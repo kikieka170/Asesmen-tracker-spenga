@@ -192,6 +192,8 @@
                     </div>
                 </div>
                 
+                <p class="text-xs text-gray-500 mt-1 bg-yellow-50 p-2 rounded border border-yellow-100">Format CSV: Nama, NISN, Kelas. Password default = NamaDepan123 (Contoh: Budi123)</p>
+
                 <!-- SEARCH BAR -->
                 <div class="relative">
                     <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa atau kelas (otomatis urut kelas)...">
@@ -631,10 +633,10 @@
 
         // --- IMPORT/EXPORT ---
         function downloadTemplate() {
-            const csv = "Nama Siswa,Mapel,Materi,Jenis,Nilai\nAhmad Rizky,Informatika,Algoritma,UH 1,90\n";
+            const csv = "Nama,NISN,Kelas\nBudi Santoso,123456,7A\nSiti Aminah,123457,7B\n";
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = "Template_Nilai.csv"; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = "Template_Import_Siswa.csv"; a.click();
         }
         function exportToCSV() {
             let csv = "ID Siswa,Nama Siswa,Kelas,Mapel,Jenis,Materi,Nilai,Catatan\n";
@@ -720,24 +722,18 @@
                             if (row.Nama && row.NISN && row.Kelas) {
                                 // 1. Create Student Document
                                 const studentRef = db.collection('students').doc(); // Auto ID
+                                const firstName = row.Nama.trim().split(' ')[0]; // Ambil kata pertama
+                                const generatedPassword = `${firstName}123`; // Password = NamaDepan123
+
                                 const studentData = {
                                     name: row.Nama.trim(),
                                     nis: row.NISN.toString().trim(),
                                     class: row.Kelas.trim(),
                                     username: row.NISN.toString().trim(), // Username = NISN
-                                    password: row.NISN.toString().trim(), // Password = NISN
+                                    password: generatedPassword, 
                                     role: 'student'
                                 };
                                 batch.set(studentRef, studentData);
-
-                                // 2. Create User Login Document (Optional, but good for login check consistency)
-                                // Only add if you use a separate 'users' collection for ALL logins.
-                                // Based on previous code, student login checks 'students' collection directly 
-                                // inside handleLoginSubmit, but teacher/admin checks 'users'.
-                                // So strictly speaking, we don't NEED to add to 'users' collection for students 
-                                // if the login logic uses the 'students' collection.
-                                // However, keeping 'users' clean for admin/teachers is fine.
-                                // Let's just stick to adding to 'students' collection which has username/password fields now.
                             }
                         });
 
