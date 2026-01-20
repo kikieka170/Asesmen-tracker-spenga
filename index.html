@@ -11,7 +11,7 @@
     <!-- Lucide Icons (Via CDN) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Firebase SDK (Compat Version untuk Browser) -->
+    <!-- Firebase SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -173,11 +173,11 @@
             </div>
             <div id="admin-panel-teachers" class="space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Guru</h3><button onclick="openAdminModal('teacher')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Guru</button></div>
-                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
+                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4">Username</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
             <div id="admin-panel-students" class="space-y-4 hidden">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3><button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button></div>
-                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
+                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
             <div id="admin-panel-subjects" class="space-y-4 hidden">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Mata Pelajaran</h3><button onclick="openAdminModal('subject')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Mapel</button></div>
@@ -211,7 +211,7 @@
                 <div id="login-teacher-wrapper" class="hidden space-y-4"><div class="space-y-2"><label class="text-sm font-bold text-gray-700">Username</label><input type="text" id="login-username" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Masukkan username..."></div></div>
                 <div class="space-y-2"><label class="text-sm font-bold text-gray-700">Password</label><div class="relative"><input type="password" id="login-password" class="w-full border-2 border-gray-200 rounded-xl p-3 pr-10 outline-none" placeholder="Masukkan kata sandi..." required><i data-lucide="lock" class="absolute right-3 top-3 text-gray-400 w-5 h-5"></i></div></div>
                 <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold py-3.5 rounded-xl shadow-lg">MASUK SEKARANG</button>
-                <div id="login-hint" class="text-center text-xs text-gray-400 mt-4">Hint: Siswa/Ortu = siswa123</div>
+                <div id="login-hint" class="text-center text-xs text-gray-400 mt-4">Hint: Siswa/Ortu = siswa123 (Default)</div>
             </form>
         </div>
     </div>
@@ -281,53 +281,36 @@
         });
 
         function initFirebaseListeners() {
-            // Check Admin Existence & Create if missing
+            // Check Admin & Create if missing
             db.collection('users').where('username', '==', 'admin').get().then(snap => {
                 if (snap.empty) {
-                    db.collection('users').add({
-                        username: 'admin',
-                        password: 'admin123',
-                        role: 'admin',
-                        name: 'Super Admin'
-                    });
+                    db.collection('users').add({ username: 'admin', password: 'admin123', role: 'admin', name: 'Super Admin' });
                     console.log("Auto-created Admin Account");
                 }
             });
 
-            // Listen Users (for Login)
-            db.collection('users').onSnapshot(snap => {
-                USERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            db.collection('users').onSnapshot(snap => { USERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); });
+            db.collection('teachers').onSnapshot(snap => { 
+                TEACHERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                renderPublicData(); 
+                if(activeView === 'admin_dashboard') renderAdminTeachers(); 
             });
-
-            // Listen Teachers
-            db.collection('teachers').onSnapshot(snap => {
-                TEACHERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPublicData();
-                if(activeView === 'admin_dashboard') renderAdminTeachers();
+            db.collection('students').onSnapshot(snap => { 
+                STUDENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                fillFormSelects(); 
+                if(activeView === 'admin_dashboard') renderAdminStudents(); 
+                if(activeView === 'home') renderStudentOfTheMonth(); 
             });
-
-            // Listen Students
-            db.collection('students').onSnapshot(snap => {
-                STUDENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                fillFormSelects(); // Update login dropdown & teacher input
-                if(activeView === 'admin_dashboard') renderAdminStudents();
-                if(activeView === 'home') renderStudentOfTheMonth();
+            db.collection('subjects').onSnapshot(snap => { 
+                SUBJECTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                renderPublicData(); 
+                fillFormSelects(); 
+                if(activeView === 'admin_dashboard') renderAdminSubjects(); 
             });
-
-            // Listen Subjects
-            db.collection('subjects').onSnapshot(snap => {
-                SUBJECTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPublicData();
-                fillFormSelects();
-                if(activeView === 'admin_dashboard') renderAdminSubjects();
-            });
-
-            // Listen Grades
-            db.collection('grades').onSnapshot(snap => {
-                GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                document.getElementById('loader').style.opacity = '0';
+            db.collection('grades').onSnapshot(snap => { 
+                GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                document.getElementById('loader').style.opacity = '0'; 
                 setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-                
                 if(activeView === 'teacher_dashboard') renderGradeTable();
                 if(activeView === 'student_dashboard') renderStudentDashboard();
                 if(activeView === 'home') renderStudentOfTheMonth();
@@ -340,34 +323,24 @@
             ['view-home', 'view-teachers', 'view-subjects', 'view-teacher-dashboard', 'view-student-dashboard', 'view-admin-dashboard'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-
             const viewMap = {
-                'home': 'view-home',
-                'teachers_list': 'view-teachers',
-                'subjects_list': 'view-subjects',
-                'teacher_dashboard': 'view-teacher-dashboard',
-                'student_dashboard': 'view-student-dashboard',
-                'admin_dashboard': 'view-admin-dashboard'
+                'home': 'view-home', 'teachers_list': 'view-teachers', 'subjects_list': 'view-subjects',
+                'teacher_dashboard': 'view-teacher-dashboard', 'student_dashboard': 'view-student-dashboard', 'admin_dashboard': 'view-admin-dashboard'
             };
             document.getElementById(viewMap[viewName]).classList.remove('hidden');
             renderNav(viewName);
             document.getElementById('mobile-menu').classList.add('hidden');
-            
-            // Trigger renders
             if (viewName === 'teacher_dashboard') { fillFormSelects(); renderGradeTable(); }
             if (viewName === 'student_dashboard') renderStudentDashboard();
             if (viewName === 'home') renderStudentOfTheMonth();
             if (viewName === 'admin_dashboard') switchAdminTab('teachers');
         }
-
         function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
-
         function renderNav(active = 'home') {
             const container = document.getElementById('desktop-menu');
             const mobileContainer = document.getElementById('mobile-menu');
             let html = '', mobileHtml = '';
             const btnClass = (isActive) => isActive ? "bg-yellow-400 text-black shadow-md px-5 py-2.5 rounded-full font-bold text-sm transition-all" : "text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-full font-bold text-sm transition-all";
-
             html += `<button onclick="switchView('home')" class="${btnClass(active === 'home')}">Beranda</button>`;
             mobileHtml += `<button onclick="switchView('home')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Beranda</button>`;
             
@@ -415,21 +388,16 @@
         function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
         function setLoginRole(role) {
             loginRole = role;
-            const tabS = document.getElementById('tab-student');
-            const tabT = document.getElementById('tab-teacher');
-            const wrapS = document.getElementById('login-student-wrapper');
-            const wrapT = document.getElementById('login-teacher-wrapper');
-            const hint = document.getElementById('login-hint');
+            const tabS = document.getElementById('tab-student'), tabT = document.getElementById('tab-teacher');
+            const wrapS = document.getElementById('login-student-wrapper'), wrapT = document.getElementById('login-teacher-wrapper'), hint = document.getElementById('login-hint');
             if (role === 'student') {
                 tabS.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors";
                 tabT.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
-                wrapS.classList.remove('hidden'); wrapT.classList.add('hidden');
-                hint.innerText = "Hint: Siswa/Ortu = siswa123";
+                wrapS.classList.remove('hidden'); wrapT.classList.add('hidden'); hint.innerText = "Hint: Siswa/Ortu = siswa123 (Default) / Password yang diset Admin";
             } else {
                 tabT.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors";
                 tabS.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
-                wrapS.classList.add('hidden'); wrapT.classList.remove('hidden');
-                hint.innerText = "Hint: Login menggunakan akun Guru/Admin yang terdaftar.";
+                wrapS.classList.add('hidden'); wrapT.classList.remove('hidden'); hint.innerText = "Hint: Login menggunakan akun Guru/Admin yang terdaftar.";
             }
         }
         function handleLoginSubmit(e) {
@@ -438,20 +406,18 @@
             if (loginRole === 'teacher') {
                 const username = document.getElementById('login-username').value;
                 const user = USERS.find(u => u.username === username && u.password === password);
-                if (user) {
-                    currentUser = user;
-                    switchView(user.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard');
-                    closeLoginModal();
-                } else { alert("Username atau Password Salah!"); }
+                if (user) { currentUser = user; switchView(user.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard'); closeLoginModal(); } 
+                else { alert("Username atau Password Salah!"); }
             } else {
                 const id = document.getElementById('login-student-id').value;
                 if (!id) return alert("Pilih nama siswa");
-                if (password === 'siswa123') {
-                    const s = STUDENTS.find(x => x.id === id);
+                const s = STUDENTS.find(x => x.id === id);
+                // Check if user has specific password or use default
+                if (s && (s.password === password || (!s.password && password === 'siswa123'))) {
                     currentUser = { role: 'student', ...s };
                     switchView('student_dashboard');
                     closeLoginModal();
-                } else { alert("Password Salah! (Default: siswa123)"); }
+                } else { alert("Password Salah!"); }
             }
         }
         function handleLogout() { currentUser = null; switchView('home'); }
@@ -469,10 +435,10 @@
             if (tab === 'subjects') renderAdminSubjects();
         }
         function renderAdminTeachers() {
-            document.getElementById('admin-table-teachers').innerHTML = TEACHERS.map(t => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4">${t.name}</td><td class="p-4">${t.mapel}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('teacher', '${t.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('teachers', '${t.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
+            document.getElementById('admin-table-teachers').innerHTML = TEACHERS.map(t => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4">${t.name}</td><td class="p-4">${t.mapel}</td><td class="p-4 font-mono text-xs text-blue-600">${t.username || '-'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('teacher', '${t.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('teachers', '${t.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
         }
         function renderAdminStudents() {
-            document.getElementById('admin-table-students').innerHTML = STUDENTS.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-mono text-xs text-gray-500">${s.nis || '-'}</td><td class="p-4 font-bold">${s.name}</td><td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${s.class}</span></td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('student', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('students', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
+            document.getElementById('admin-table-students').innerHTML = STUDENTS.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-mono text-xs text-gray-500">${s.nis || '-'}</td><td class="p-4 font-bold">${s.name}</td><td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${s.class}</span></td><td class="p-4 font-mono text-xs text-blue-600">${s.username || '-'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('student', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('students', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
         }
         function renderAdminSubjects() {
             document.getElementById('admin-table-subjects').innerHTML = SUBJECTS.map((s) => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-bold">${s.name}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('subject', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('subjects', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
@@ -483,8 +449,8 @@
             document.getElementById('admin-edit-id').value = "";
             document.getElementById('admin-modal-title').innerText = `Tambah ${type}`;
             const container = document.getElementById('admin-fields');
-            if (type === 'teacher') container.innerHTML = `<input type="text" id="adm-t-name" class="w-full border p-2 rounded" placeholder="Nama Guru" required><input type="text" id="adm-t-mapel" class="w-full border p-2 rounded" placeholder="Mata Pelajaran" required>`;
-            else if (type === 'student') container.innerHTML = `<input type="text" id="adm-s-id" class="w-full border p-2 rounded" placeholder="NIS" required><input type="text" id="adm-s-name" class="w-full border p-2 rounded" placeholder="Nama Siswa" required><input type="text" id="adm-s-class" class="w-full border p-2 rounded" placeholder="Kelas (ex: 7A)" required>`;
+            if (type === 'teacher') container.innerHTML = `<input type="text" id="adm-t-name" class="w-full border p-2 rounded" placeholder="Nama Guru" required><input type="text" id="adm-t-mapel" class="w-full border p-2 rounded" placeholder="Mata Pelajaran" required><hr><input type="text" id="adm-t-user" class="w-full border p-2 rounded bg-yellow-50" placeholder="Username (Login)" required><input type="text" id="adm-t-pass" class="w-full border p-2 rounded bg-yellow-50" placeholder="Password" required>`;
+            else if (type === 'student') container.innerHTML = `<input type="text" id="adm-s-id" class="w-full border p-2 rounded" placeholder="NIS" required><input type="text" id="adm-s-name" class="w-full border p-2 rounded" placeholder="Nama Siswa" required><input type="text" id="adm-s-class" class="w-full border p-2 rounded" placeholder="Kelas (ex: 7A)" required><hr><input type="text" id="adm-s-user" class="w-full border p-2 rounded bg-yellow-50" placeholder="Username (Opsional)"><input type="text" id="adm-s-pass" class="w-full border p-2 rounded bg-yellow-50" placeholder="Password (Opsional - Default: siswa123)">`;
             else if (type === 'subject') container.innerHTML = `<input type="text" id="adm-sub-name" class="w-full border p-2 rounded" placeholder="Nama Mata Pelajaran" required>`;
         }
         function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
@@ -495,8 +461,18 @@
             const editId = document.getElementById('admin-edit-id').value;
             let col = '', data = {};
 
-            if (type === 'teacher') { col = 'teachers'; data = { name: document.getElementById('adm-t-name').value, mapel: document.getElementById('adm-t-mapel').value }; }
-            else if (type === 'student') { col = 'students'; data = { nis: document.getElementById('adm-s-id').value, name: document.getElementById('adm-s-name').value, class: document.getElementById('adm-s-class').value }; }
+            if (type === 'teacher') { 
+                const uname = document.getElementById('adm-t-user').value;
+                const pass = document.getElementById('adm-t-pass').value;
+                col = 'teachers'; 
+                data = { name: document.getElementById('adm-t-name').value, mapel: document.getElementById('adm-t-mapel').value, username: uname, password: pass }; 
+                // Auto create user in users collection
+                if (!editId) db.collection('users').add({ username: uname, password: pass, role: 'teacher', name: data.name });
+            }
+            else if (type === 'student') { 
+                col = 'students'; 
+                data = { nis: document.getElementById('adm-s-id').value, name: document.getElementById('adm-s-name').value, class: document.getElementById('adm-s-class').value, username: document.getElementById('adm-s-user').value, password: document.getElementById('adm-s-pass').value }; 
+            }
             else if (type === 'subject') { col = 'subjects'; data = { name: document.getElementById('adm-sub-name').value }; }
 
             if (editId) db.collection(col).doc(editId).update(data);
@@ -508,8 +484,8 @@
             openAdminModal(type);
             document.getElementById('admin-modal-title').innerText = "Edit Data";
             document.getElementById('admin-edit-id').value = id;
-            if (type === 'teacher') { const t = TEACHERS.find(x => x.id == id); document.getElementById('adm-t-name').value = t.name; document.getElementById('adm-t-mapel').value = t.mapel; }
-            else if (type === 'student') { const s = STUDENTS.find(x => x.id == id); document.getElementById('adm-s-id').value = s.nis; document.getElementById('adm-s-name').value = s.name; document.getElementById('adm-s-class').value = s.class; }
+            if (type === 'teacher') { const t = TEACHERS.find(x => x.id == id); document.getElementById('adm-t-name').value = t.name; document.getElementById('adm-t-mapel').value = t.mapel; document.getElementById('adm-t-user').value = t.username || ''; document.getElementById('adm-t-pass').value = t.password || ''; }
+            else if (type === 'student') { const s = STUDENTS.find(x => x.id == id); document.getElementById('adm-s-id').value = s.nis; document.getElementById('adm-s-name').value = s.name; document.getElementById('adm-s-class').value = s.class; document.getElementById('adm-s-user').value = s.username || ''; document.getElementById('adm-s-pass').value = s.password || ''; }
             else if (type === 'subject') { const s = SUBJECTS.find(x => x.id == id); document.getElementById('adm-sub-name').value = s.name; }
         }
         function deleteAdminData(col, id) { if(confirm("Hapus data ini?")) db.collection(col).doc(id).delete(); }
