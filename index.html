@@ -171,14 +171,30 @@
                 <button onclick="switchAdminTab('students')" id="tab-admin-students" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Siswa</button>
                 <button onclick="switchAdminTab('subjects')" id="tab-admin-subjects" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Mapel</button>
             </div>
+            
+            <!-- TEACHERS PANEL -->
             <div id="admin-panel-teachers" class="space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Guru</h3><button onclick="openAdminModal('teacher')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Guru</button></div>
-                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4">Username</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
+                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
+            
+            <!-- STUDENTS PANEL -->
             <div id="admin-panel-students" class="space-y-4 hidden">
-                <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3><button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button></div>
-                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3>
+                    <button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button>
+                </div>
+                
+                <!-- SEARCH BAR -->
+                <div class="relative">
+                    <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa atau kelas (otomatis urut kelas)...">
+                    <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
+                </div>
+
+                <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
+            
+            <!-- SUBJECTS PANEL -->
             <div id="admin-panel-subjects" class="space-y-4 hidden">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Mata Pelajaran</h3><button onclick="openAdminModal('subject')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Mapel</button></div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Mata Pelajaran</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-subjects" class="divide-y divide-gray-100"></tbody></table></div>
@@ -435,10 +451,27 @@
             if (tab === 'subjects') renderAdminSubjects();
         }
         function renderAdminTeachers() {
-            document.getElementById('admin-table-teachers').innerHTML = TEACHERS.map(t => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4">${t.name}</td><td class="p-4">${t.mapel}</td><td class="p-4 font-mono text-xs text-blue-600">${t.username || '-'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('teacher', '${t.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('teachers', '${t.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
+            document.getElementById('admin-table-teachers').innerHTML = TEACHERS.map(t => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4">${t.name}</td><td class="p-4">${t.mapel}</td><td class="p-4 font-mono text-xs text-blue-600">${t.username || '-'}</td><td class="p-4 font-mono text-xs text-gray-400">${t.password || '******'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('teacher', '${t.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('teachers', '${t.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
         }
         function renderAdminStudents() {
-            document.getElementById('admin-table-students').innerHTML = STUDENTS.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-mono text-xs text-gray-500">${s.nis || '-'}</td><td class="p-4 font-bold">${s.name}</td><td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${s.class}</span></td><td class="p-4 font-mono text-xs text-blue-600">${s.username || '-'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('student', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('students', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
+            // Get search term
+            const searchTerm = document.getElementById('search-student')?.value.toLowerCase() || "";
+            
+            // Filter
+            const filtered = STUDENTS.filter(s => 
+                s.name.toLowerCase().includes(searchTerm) || 
+                s.class.toLowerCase().includes(searchTerm) ||
+                (s.nis && s.nis.toLowerCase().includes(searchTerm))
+            );
+
+            // Sort: Class first, then Name
+            filtered.sort((a, b) => {
+                if (a.class < b.class) return -1;
+                if (a.class > b.class) return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            document.getElementById('admin-table-students').innerHTML = filtered.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-mono text-xs text-gray-500">${s.nis || '-'}</td><td class="p-4 font-bold">${s.name}</td><td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${s.class}</span></td><td class="p-4 font-mono text-xs text-blue-600">${s.username || '-'}</td><td class="p-4 font-mono text-xs text-gray-400">${s.password || '******'}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('student', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('students', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
         }
         function renderAdminSubjects() {
             document.getElementById('admin-table-subjects').innerHTML = SUBJECTS.map((s) => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-bold">${s.name}</td><td class="p-4 text-right flex justify-end gap-2"><button onclick="editAdminData('subject', '${s.id}')" class="text-blue-600 hover:underline">Edit</button><button onclick="deleteAdminData('subjects', '${s.id}')" class="text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
