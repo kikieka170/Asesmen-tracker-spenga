@@ -29,8 +29,6 @@
         /* Loader Overlay */
         #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
         .hidden-input { display: none; }
-        /* Accordion Transition */
-        .accordion-content { transition: max-height 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-white text-gray-900 flex flex-col min-h-screen">
@@ -116,7 +114,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div><h2 class="text-2xl font-black text-blue-900">Dashboard Guru</h2><p class="text-gray-500">Kelola nilai siswa secara manual atau kolektif.</p></div>
                 <div class="flex flex-wrap gap-3">
-                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="download" class="w-5 h-5"></i> Download Rekap</button>
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="download" class="w-5 h-5"></i> Download Semua</button>
                     <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif</button>
                 </div>
             </div>
@@ -155,8 +153,8 @@
                 </form>
             </div>
             
-            <!-- REKAM JEJAK NILAI (Accordion Style) -->
-            <div class="space-y-4" id="grades-accordion-container">
+            <!-- REKAM JEJAK NILAI (Accordion Per Kelas) -->
+            <div id="grades-accordion-container" class="space-y-4">
                  <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">Memuat data nilai...</div>
             </div>
         </section>
@@ -192,14 +190,10 @@
                 <button onclick="switchAdminTab('students')" id="tab-admin-students" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Siswa</button>
                 <button onclick="switchAdminTab('subjects')" id="tab-admin-subjects" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Mapel</button>
             </div>
-            
-            <!-- TEACHERS PANEL -->
             <div id="admin-panel-teachers" class="space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Guru</h3><button onclick="openAdminModal('teacher')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Guru</button></div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
-            
-            <!-- STUDENTS PANEL -->
             <div id="admin-panel-students" class="space-y-4 hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3>
@@ -210,19 +204,13 @@
                         <button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button>
                     </div>
                 </div>
-                
                 <p class="text-xs text-gray-500 mt-1 bg-yellow-50 p-2 rounded border border-yellow-100">Format CSV: Nama, NISN, Kelas. Password default = NamaDepan123 (Contoh: Budi123)</p>
-
-                <!-- SEARCH BAR -->
                 <div class="relative">
                     <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa atau kelas (otomatis urut kelas)...">
                     <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
                 </div>
-
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
-            
-            <!-- SUBJECTS PANEL -->
             <div id="admin-panel-subjects" class="space-y-4 hidden">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Mata Pelajaran</h3><button onclick="openAdminModal('subject')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Mapel</button></div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Mata Pelajaran</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-subjects" class="divide-y divide-gray-100"></tbody></table></div>
@@ -371,6 +359,7 @@
             document.getElementById('subjects-grid').innerHTML = SUBJECTS.map(s => `<div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-400 hover:bg-yellow-50 transition cursor-default"><h3 class="font-bold text-gray-800 text-center">${s.name}</h3></div>`).join('');
         }
 
+        // --- AUTH ---
         function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); document.getElementById('login-student-nis').value = ''; setLoginRole('student'); }
         function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
         function setLoginRole(role) {
@@ -395,6 +384,7 @@
         }
         function handleLogout() { currentUser = null; if(unsubscribeGrades) { unsubscribeGrades(); unsubscribeGrades = null; } GRADES = []; switchView('home'); }
 
+        // --- GURU ---
         function fillFormSelects() {
             const classes = [...new Set(STUDENTS.map(s => s.class))].sort();
             document.getElementById('input-class-filter').innerHTML = '<option value="">-- Pilih Kelas --</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -441,105 +431,112 @@
             }
         }
         function deleteGrade(id) { if(confirm("Hapus nilai?")) db.collection('grades').doc(id).delete(); }
-
-        // --- NEW: RENDER GRADE TABLE (ACCORDION) ---
+        
+        // --- NEW: RENDER GRADE TABLE (GROUPED BY CLASS) ---
         function renderGradeTable() {
             const container = document.getElementById('grades-accordion-container');
-            
-            // 1. Prepare Data
             const enrichedGrades = GRADES.map(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
                 return { ...g, studentName: s ? s.name : 'Unknown', studentClass: s ? s.class : 'Unknown', studentNis: s ? s.nis : '-' };
             });
 
-            // 2. Grouping: { "Type - Topic": { "7A": [grades...], "7B": [grades...] } }
+            // Group by Class
             const grouped = {};
             enrichedGrades.forEach(g => {
-                const groupKey = `${g.type} - ${g.topic}`;
-                if (!grouped[groupKey]) grouped[groupKey] = {};
                 const classKey = g.studentClass;
-                if (!grouped[groupKey][classKey]) grouped[groupKey][classKey] = [];
-                grouped[groupKey][classKey].push(g);
+                if (!grouped[classKey]) grouped[classKey] = [];
+                grouped[classKey].push(g);
             });
 
-            // 3. Render
             let html = '';
-            if (Object.keys(grouped).length === 0) {
-                html = `<div class="text-center p-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">Belum ada data nilai.</div>`;
-            } else {
-                for (const [assessmentKey, classGroups] of Object.entries(grouped)) {
-                    // Unique ID for toggle
-                    const accordionId = `acc-${assessmentKey.replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 5)}`;
-                    
-                    html += `
-                    <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                        <!-- HEADER ACCORDION -->
-                        <button onclick="toggleAccordion('${accordionId}')" class="w-full bg-blue-50 hover:bg-blue-100 p-4 px-6 border-b border-blue-100 flex justify-between items-center text-left transition-colors">
-                            <h3 class="font-bold text-blue-900 text-lg flex items-center gap-2">
-                                <i data-lucide="folder-open" class="w-5 h-5"></i> ${assessmentKey}
-                            </h3>
-                            <div class="flex items-center gap-2 text-sm text-blue-600 font-semibold">
-                                <span>${Object.keys(classGroups).length} Kelas</span>
-                                <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-200"></i>
-                            </div>
-                        </button>
-                        
-                        <!-- CONTENT ACCORDION (Hidden by default) -->
-                        <div id="${accordionId}" class="hidden p-6 space-y-6 bg-white animate-fade-in">
-                    `;
-                    
-                    const sortedClasses = Object.keys(classGroups).sort();
-                    for (const cls of sortedClasses) {
-                        const classGrades = classGroups[cls];
-                        classGrades.sort((a, b) => a.studentName.localeCompare(b.studentName));
+            const sortedClasses = Object.keys(grouped).sort();
 
-                        html += `
-                            <div class="border rounded-lg overflow-hidden">
-                                <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800 flex justify-between items-center">
-                                    <span>Kelas ${cls}</span>
-                                    <span class="text-xs bg-white px-2 py-1 rounded border border-yellow-200 text-yellow-600">${classGrades.length} Siswa</span>
+            if (sortedClasses.length === 0) {
+                html = `<div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-2"><i data-lucide="inbox" class="w-10 h-10 text-gray-300"></i><span>Belum ada data nilai yang diinput.</span></div>`;
+            } else {
+                sortedClasses.forEach(cls => {
+                    const classGrades = grouped[cls];
+                    classGrades.sort((a, b) => {
+                        const nameCompare = a.studentName.localeCompare(b.studentName);
+                        if (nameCompare !== 0) return nameCompare;
+                        return a.type.localeCompare(b.type);
+                    });
+
+                    const accordionId = `acc-class-${cls.replace(/\s+/g, '-')}`;
+
+                    html += `
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 transition-all hover:shadow-md">
+                        <div class="w-full bg-white p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-100">
+                            <button onclick="toggleAccordion('${accordionId}')" class="flex-1 flex items-center gap-3 text-left w-full focus:outline-none group">
+                                <div class="bg-blue-100 text-blue-700 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
+                                    <i data-lucide="users" class="w-6 h-6"></i>
                                 </div>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left text-sm whitespace-nowrap">
-                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                            <tr>
-                                                <th class="p-3 w-10">No</th>
-                                                <th class="p-3">Nama Siswa</th>
-                                                <th class="p-3">Nilai</th>
-                                                <th class="p-3">Status</th>
-                                                <th class="p-3">Catatan</th>
-                                                <th class="p-3 text-center">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-100">
+                                <div>
+                                    <h3 class="font-bold text-xl text-gray-800">Kelas ${cls}</h3>
+                                    <p class="text-sm text-gray-500">${classGrades.length} Data Nilai</p>
+                                </div>
+                                <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 text-gray-400 ml-2 transition-transform duration-200"></i>
+                            </button>
+                            <button onclick="downloadRekapKelas('${cls}')" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-green-200 transition-all active:scale-95 whitespace-nowrap">
+                                <i data-lucide="download" class="w-4 h-4"></i> Unduh Leger Kelas
+                            </button>
+                        </div>
+                        <div id="${accordionId}" class="hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+                                        <tr>
+                                            <th class="p-4 w-10">No</th>
+                                            <th class="p-4">Nama Siswa</th>
+                                            <th class="p-4">Mata Pelajaran</th>
+                                            <th class="p-4">Jenis Asesmen</th>
+                                            <th class="p-4">Materi</th>
+                                            <th class="p-4">Nilai</th>
+                                            <th class="p-4">Catatan</th>
+                                            <th class="p-4 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                    `;
+
+                    classGrades.forEach((g, idx) => {
+                        const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
+                        const badgeColor = status === 'Tuntas' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
+                        
+                        html += `
+                            <tr class="hover:bg-blue-50/50 transition-colors">
+                                <td class="p-4 text-gray-400 text-xs">${idx + 1}</td>
+                                <td class="p-4">
+                                    <span class="font-bold text-gray-800 block">${g.studentName}</span>
+                                    <span class="text-xs text-gray-400 font-mono">${g.studentNis}</span>
+                                </td>
+                                <td class="p-4 text-gray-600">${g.subject}</td>
+                                <td class="p-4">
+                                    <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-semibold">${g.type}</span>
+                                </td>
+                                <td class="p-4 text-gray-600 max-w-[150px] truncate" title="${g.topic}">${g.topic}</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-black text-lg ${g.score >= 90 ? 'text-blue-600' : (g.score < 75 ? 'text-red-500' : 'text-gray-800')}">${g.score}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${status}</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 max-w-[200px] truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td>
+                                <td class="p-4 flex justify-center gap-2">
+                                    <button onclick="editGrade('${g.id}')" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Edit"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                    <button onclick="deleteGrade('${g.id}')" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </td>
+                            </tr>
                         `;
-                        classGrades.forEach((g, idx) => {
-                            const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                            const badgeColor = status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                            html += `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="p-3 text-gray-400 text-xs">${idx + 1}</td>
-                                    <td class="p-3 font-bold text-gray-800">${g.studentName} <span class="text-xs font-normal text-gray-400 block">${g.studentNis}</span></td>
-                                    <td class="p-3 font-black text-blue-900">${g.score}</td>
-                                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${status}</span></td>
-                                    <td class="p-3 max-w-xs truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td>
-                                    <td class="p-3 flex gap-2 justify-center">
-                                        <button onclick="editGrade('${g.id}')" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                        <button onclick="deleteGrade('${g.id}')" class="text-red-600 hover:bg-red-50 p-1.5 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        html += `</tbody></table></div></div>`;
-                    }
-                    html += `</div></div>`;
-                }
+                    });
+                    html += `</tbody></table></div></div></div>`;
+                });
             }
             container.innerHTML = html;
             lucide.createIcons();
         }
 
-        // --- NEW: TOGGLE FUNCTION ---
+        // Toggle Function
         function toggleAccordion(id) {
             const content = document.getElementById(id);
             const icon = document.getElementById(`icon-${id}`);
@@ -552,12 +549,53 @@
             }
         }
 
-        // --- NEW: EXPORT CSV LOGIC ---
+        // --- EXPORT PER CLASS ---
+        function downloadRekapKelas(className) {
+            if (!currentUser) return;
+            const classData = GRADES
+                .filter(g => {
+                    const s = STUDENTS.find(st => st.id === g.studentId);
+                    return s && s.class === className; 
+                })
+                .map(g => {
+                     const s = STUDENTS.find(st => st.id === g.studentId);
+                     return {
+                         NISN: s ? s.nis : '-',
+                         Nama: s ? s.name : 'Unknown',
+                         Mapel: g.subject,
+                         Jenis: g.type,
+                         Materi: g.topic,
+                         Nilai: g.score,
+                         Catatan: g.note ? g.note.replace(/,/g, ' ') : '-'
+                     };
+                });
+            
+            classData.sort((a, b) => a.Nama.localeCompare(b.Nama));
+
+            if (classData.length === 0) return alert("Tidak ada data untuk kelas ini.");
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "NISN,Nama Siswa,Mata Pelajaran,Jenis Asesmen,Materi,Nilai,Catatan\n";
+            
+            classData.forEach(row => {
+                csvContent += `${row.NISN},"${row.Nama}","${row.Mapel}","${row.Jenis}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`;
+            });
+
+            const teacherNameSafe = currentUser.name.replace(/[^a-z0-9]/gi, '_');
+            const fileName = `Leger_Nilai_${className}_${teacherNameSafe}.csv`;
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- GLOBAL EXPORT (BACKUP) ---
         function exportToCSV() {
             if (!currentUser) return;
-            
-            // 1. Ambil data langsung dari variabel global GRADES (yang sudah difilter by NIP)
-            // 2. Gabungkan dengan data siswa untuk mendapatkan detail lengkap
             const dataToExport = GRADES.map(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
                 return {
@@ -568,36 +606,19 @@
                     JenisAsesmen: g.type,
                     Materi: g.topic,
                     Nilai: g.score,
-                    Catatan: g.note ? g.note.replace(/,/g, " ") : "-" // Bersihkan koma agar CSV aman
+                    Catatan: g.note ? g.note.replace(/,/g, " ") : "-" 
                 };
             });
-
-            if (dataToExport.length === 0) {
-                alert("Belum ada data nilai untuk diunduh.");
-                return;
-            }
-
-            // 3. Buat Header & Content CSV
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "\uFEFF"; // BOM untuk Excel
+            if (dataToExport.length === 0) { alert("Belum ada data nilai untuk diunduh."); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
             csvContent += "Nama Siswa,NISN,Kelas,Mata Pelajaran,Jenis Asesmen,Materi/Topik,Nilai,Catatan Guru\n";
-
-            dataToExport.forEach(row => {
-                csvContent += `"${row.Nama}",${row.NISN},${row.Kelas},"${row.Mapel}","${row.JenisAsesmen}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`;
-            });
-
-            // 4. Generate Filename & Download
+            dataToExport.forEach(row => { csvContent += `"${row.Nama}",${row.NISN},${row.Kelas},"${row.Mapel}","${row.JenisAsesmen}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`; });
             const date = new Date().toISOString().slice(0,10);
             const teacherName = currentUser.name.replace(/\s+/g, '_');
             const fileName = `Rekap_Nilai_${teacherName}_${date}.csv`;
-
             const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         // --- OTHER FUNCTIONS REMAIN SAME ---
