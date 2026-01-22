@@ -118,6 +118,8 @@
                     <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif</button>
                 </div>
             </div>
+            
+            <!-- FORM INPUT (Sama seperti sebelumnya) -->
             <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden p-8 border-t-8 border-yellow-400">
                 <h3 class="font-bold text-xl mb-6 text-gray-800 flex items-center gap-2" id="form-title">Input Nilai Manual</h3>
                 <form onsubmit="handleGradeSubmit(event)" class="grid md:grid-cols-2 gap-6">
@@ -152,8 +154,13 @@
                     </div>
                 </form>
             </div>
-            <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-50 text-gray-600 font-bold uppercase text-xs tracking-wider border-b border-gray-200"><tr><th class="p-4">Nama Siswa</th><th class="p-4">Mapel</th><th class="p-4">Jenis</th><th class="p-4">Nilai</th><th class="p-4">Status</th><th class="p-4">Catatan</th><th class="p-4 text-center">Aksi</th></tr></thead><tbody id="grades-table-body" class="divide-y divide-gray-100"></tbody></table></div>
+            
+            <!-- REKAM JEJAK NILAI (Updated Structure: Grouping by Assessment -> Class) -->
+            <div id="grades-table-container" class="space-y-6">
+                <!-- Content will be injected by renderGradeTable() -->
+                <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    Memuat data nilai...
+                </div>
             </div>
         </section>
 
@@ -689,13 +696,118 @@
             }
         }
         function deleteGrade(id) { if(confirm("Hapus nilai?")) db.collection('grades').doc(id).delete(); }
+        
+        // --- UPDATED RENDER GRADE TABLE (GROUPED) ---
         function renderGradeTable() {
-            document.getElementById('grades-table-body').innerHTML = GRADES.map(g => {
-                const s = STUDENTS.find(x => x.id === g.studentId);
-                const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                const badgeColor = status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                return `<tr class="hover:bg-yellow-50 border-b border-gray-100"><td class="p-4 font-bold text-gray-800">${s ? s.name : 'Unknown'}</td><td class="p-4">${g.subject}</td><td class="p-4"><div class="font-semibold text-gray-900">${g.type}</div><div class="text-xs text-gray-500">${g.topic}</div></td><td class="p-4 font-black text-blue-900 text-lg">${g.score}</td><td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}">${status}</span></td><td class="p-4 max-w-xs truncate text-gray-500 italic" title="${g.note}">${g.note}</td><td class="p-4 flex gap-2 justify-center"><button onclick="editGrade('${g.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-bold">Edit</button><button onclick="deleteGrade('${g.id}')" class="text-red-600 hover:text-red-800 text-xs font-bold">Hapus</button></td></tr>`;
-            }).join('');
+            const container = document.getElementById('grades-table-container');
+            
+            // 1. Prepare Data
+            const enrichedGrades = GRADES.map(g => {
+                const s = STUDENTS.find(st => st.id === g.studentId);
+                return {
+                    ...g,
+                    studentName: s ? s.name : 'Unknown',
+                    studentClass: s ? s.class : 'Unknown',
+                    studentNis: s ? s.nis : '-'
+                };
+            });
+
+            // 2. Grouping: { "Type - Topic": { "7A": [grades...], "7B": [grades...] } }
+            const grouped = {};
+            
+            enrichedGrades.forEach(g => {
+                const groupKey = `${g.type} - ${g.topic}`;
+                if (!grouped[groupKey]) grouped[groupKey] = {};
+                
+                const classKey = g.studentClass;
+                if (!grouped[groupKey][classKey]) grouped[groupKey][classKey] = [];
+                
+                grouped[groupKey][classKey].push(g);
+            });
+
+            // 3. Render
+            let html = '';
+            
+            if (Object.keys(grouped).length === 0) {
+                html = `<div class="text-center p-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">Belum ada data nilai.</div>`;
+            } else {
+                // Iterate Assessments
+                for (const [assessmentKey, classGroups] of Object.entries(grouped)) {
+                    html += `
+                    <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden mb-8">
+                        <div class="bg-blue-900 text-white p-4 px-6 border-b border-blue-800">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <i data-lucide="book-open" class="w-5 h-5"></i> ${assessmentKey}
+                            </h3>
+                        </div>
+                        <div class="p-6 space-y-6">
+                    `;
+                    
+                    // Iterate Classes (Sorted)
+                    const sortedClasses = Object.keys(classGroups).sort();
+                    
+                    for (const cls of sortedClasses) {
+                        const classGrades = classGroups[cls];
+                        // Sort Students A-Z
+                        classGrades.sort((a, b) => a.studentName.localeCompare(b.studentName));
+
+                        html += `
+                            <div class="border rounded-lg overflow-hidden">
+                                <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800 flex justify-between items-center">
+                                    <span>Kelas ${cls}</span>
+                                    <span class="text-xs bg-white px-2 py-1 rounded border border-yellow-200">${classGrades.length} Siswa</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr>
+                                                <th class="p-3 w-10">No</th>
+                                                <th class="p-3">Nama Siswa</th>
+                                                <th class="p-3">Nilai</th>
+                                                <th class="p-3">Status</th>
+                                                <th class="p-3">Catatan</th>
+                                                <th class="p-3 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                        `;
+
+                        classGrades.forEach((g, idx) => {
+                            const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
+                            const badgeColor = status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                            
+                            html += `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-3 text-gray-400 text-xs">${idx + 1}</td>
+                                    <td class="p-3 font-bold text-gray-800">${g.studentName} <span class="text-xs font-normal text-gray-400 block">${g.studentNis}</span></td>
+                                    <td class="p-3 font-black text-blue-900">${g.score}</td>
+                                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${status}</span></td>
+                                    <td class="p-3 max-w-xs truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td>
+                                    <td class="p-3 flex gap-2 justify-center">
+                                        <button onclick="editGrade('${g.id}')" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                        <button onclick="deleteGrade('${g.id}')" class="text-red-600 hover:bg-red-50 p-1.5 rounded transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                        </div>
+                    </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
         }
 
         // --- STUDENT DASHBOARD ---
