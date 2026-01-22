@@ -29,6 +29,11 @@
         /* Loader Overlay */
         #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
         .hidden-input { display: none; }
+        
+        /* Rank Colors */
+        .rank-1 { background: linear-gradient(135deg, #FFF7D1 0%, #FFD700 100%); border-color: #FFD700; color: #854d0e; }
+        .rank-2 { background: linear-gradient(135deg, #F3F4F6 0%, #C0C0C0 100%); border-color: #C0C0C0; color: #374151; }
+        .rank-3 { background: linear-gradient(135deg, #FFF1E6 0%, #CD7F32 100%); border-color: #CD7F32; color: #7c2d12; }
     </style>
 </head>
 <body class="bg-white text-gray-900 flex flex-col min-h-screen">
@@ -81,14 +86,23 @@
                     </button>
                 </div>
             </div>
-            <div class="text-center mb-10">
-                <div class="inline-flex items-center justify-center gap-3 mb-2">
-                    <i data-lucide="trophy" class="text-yellow-500 w-10 h-10"></i>
-                    <h2 class="text-3xl font-black text-blue-900 uppercase tracking-wide">Student of The Month</h2>
+
+            <!-- STUDENT OF THE MONTH SECTION -->
+            <div class="mb-12">
+                <div class="text-center mb-10">
+                    <div class="inline-flex items-center justify-center gap-3 mb-2">
+                        <i data-lucide="trophy" class="text-yellow-500 w-10 h-10"></i>
+                        <h2 class="text-3xl font-black text-blue-900 uppercase tracking-wide">Student of The Month</h2>
+                    </div>
+                    <p class="text-gray-500">Siswa dengan rata-rata nilai tertinggi bulan ini</p>
                 </div>
-                <p class="text-gray-500">Siswa paling rajin dan berprestasi akademik bulan ini</p>
+
+                <!-- Grid Angkatan -->
+                <div class="grid lg:grid-cols-3 gap-8" id="sotm-container">
+                    <!-- Cards will be injected here -->
+                    <div class="col-span-3 text-center text-gray-400 py-8">Memuat data prestasi...</div>
+                </div>
             </div>
-            <div id="ranking-container" class="flex flex-col md:flex-row items-end justify-center gap-6 px-4"></div>
         </section>
 
         <!-- 2. DATA GURU VIEW -->
@@ -114,7 +128,6 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div><h2 class="text-2xl font-black text-blue-900">Dashboard Guru</h2><p class="text-gray-500">Kelola nilai siswa secara manual atau kolektif.</p></div>
                 <div class="flex flex-wrap gap-3">
-                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="download" class="w-5 h-5"></i> Download Semua</button>
                     <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif</button>
                 </div>
             </div>
@@ -125,7 +138,6 @@
                 <form onsubmit="handleGradeSubmit(event)" class="grid md:grid-cols-2 gap-6">
                     <input type="hidden" id="edit-id" value="">
                     
-                    <!-- SELECT CLASS FIRST -->
                     <div class="md:col-span-2 grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Langkah 1: Pilih Kelas</label>
@@ -183,7 +195,6 @@
         <section id="view-admin-dashboard" class="animate-fade-in hidden space-y-8">
             <div class="bg-gradient-to-r from-gray-900 to-blue-900 text-white p-8 rounded-3xl shadow-xl flex justify-between items-center">
                 <div><h2 class="text-3xl font-black text-yellow-400">Admin Dashboard</h2><p class="text-blue-200">Panel Manajemen Data Master & Database</p></div>
-                <button onclick="exportToCSV()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 backdrop-blur-sm"><i data-lucide="download" class="w-4 h-4"></i> Backup Data Nilai</button>
             </div>
             <div class="flex gap-4 border-b border-gray-200">
                 <button onclick="switchAdminTab('teachers')" id="tab-admin-teachers" class="px-6 py-3 font-bold text-sm border-b-4 border-yellow-400 text-blue-900 bg-yellow-50 rounded-t-lg transition-all">Data Guru</button>
@@ -289,7 +300,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let GRADES = [], TEACHERS = [], SUBJECTS = [], STUDENTS = [], USERS = [];
+        let GRADES = [], GLOBAL_GRADES = [], TEACHERS = [], SUBJECTS = [], STUDENTS = [], USERS = [];
         let currentUser = null, loginRole = 'student', activeView = 'home';
         let unsubscribeGrades = null; 
         const ASSESSMENT_TYPES = ["Ulangan Harian", "Tugas 1", "Tugas 2", "Tugas 3", "Tugas 4", "Tugas 5", "Unjuk Keahlian", "SAS", "Proyek"];
@@ -302,12 +313,12 @@
             db.collection('teachers').onSnapshot(snap => { TEACHERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderPublicData(); if(activeView === 'admin_dashboard') renderAdminTeachers(); });
             db.collection('students').onSnapshot(snap => { STUDENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); fillFormSelects(); if(activeView === 'admin_dashboard') renderAdminStudents(); if(activeView === 'home') renderStudentOfTheMonth(); });
             db.collection('subjects').onSnapshot(snap => { SUBJECTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderPublicData(); fillFormSelects(); if(activeView === 'admin_dashboard') renderAdminSubjects(); });
+            
+            // GLOBAL GRADES FOR SOTM
             db.collection('grades').onSnapshot(snap => { 
-                GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                document.getElementById('loader').style.opacity = '0'; setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-                if(activeView === 'teacher_dashboard') renderGradeTable();
-                if(activeView === 'student_dashboard') renderStudentDashboard();
+                GLOBAL_GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
                 if(activeView === 'home') renderStudentOfTheMonth();
+                document.getElementById('loader').style.opacity = '0'; setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
             });
         }
 
@@ -432,104 +443,94 @@
         }
         function deleteGrade(id) { if(confirm("Hapus nilai?")) db.collection('grades').doc(id).delete(); }
         
-        // --- NEW: RENDER GRADE TABLE (GROUPED BY CLASS) ---
+        // --- NEW: RENDER GRADE TABLE (GROUPED BY CLASS -> ASSESSMENT) ---
         function renderGradeTable() {
             const container = document.getElementById('grades-accordion-container');
+            
+            // Enrich
             const enrichedGrades = GRADES.map(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
                 return { ...g, studentName: s ? s.name : 'Unknown', studentClass: s ? s.class : 'Unknown', studentNis: s ? s.nis : '-' };
             });
 
             // Group by Class
-            const grouped = {};
+            const groupedByClass = {};
             enrichedGrades.forEach(g => {
-                const classKey = g.studentClass;
-                if (!grouped[classKey]) grouped[classKey] = [];
-                grouped[classKey].push(g);
+                const cls = g.studentClass;
+                if (!groupedByClass[cls]) groupedByClass[cls] = [];
+                groupedByClass[cls].push(g);
             });
 
             let html = '';
-            const sortedClasses = Object.keys(grouped).sort();
+            const sortedClasses = Object.keys(groupedByClass).sort();
 
             if (sortedClasses.length === 0) {
-                html = `<div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-2"><i data-lucide="inbox" class="w-10 h-10 text-gray-300"></i><span>Belum ada data nilai yang diinput.</span></div>`;
+                html = `<div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">Belum ada data nilai.</div>`;
             } else {
                 sortedClasses.forEach(cls => {
-                    const classGrades = grouped[cls];
-                    classGrades.sort((a, b) => {
-                        const nameCompare = a.studentName.localeCompare(b.studentName);
-                        if (nameCompare !== 0) return nameCompare;
-                        return a.type.localeCompare(b.type);
-                    });
-
-                    const accordionId = `acc-class-${cls.replace(/\s+/g, '-')}`;
+                    const classGrades = groupedByClass[cls];
+                    const accordionId = `acc-cls-${cls.replace(/\s+/g, '-')}`;
 
                     html += `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 transition-all hover:shadow-md">
-                        <div class="w-full bg-white p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-100">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 hover:shadow-md transition-all">
+                        <div class="p-4 flex flex-col sm:flex-row justify-between items-center bg-blue-50 border-b border-blue-100">
                             <button onclick="toggleAccordion('${accordionId}')" class="flex-1 flex items-center gap-3 text-left w-full focus:outline-none group">
-                                <div class="bg-blue-100 text-blue-700 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                    <i data-lucide="users" class="w-6 h-6"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-xl text-gray-800">Kelas ${cls}</h3>
-                                    <p class="text-sm text-gray-500">${classGrades.length} Data Nilai</p>
-                                </div>
-                                <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 text-gray-400 ml-2 transition-transform duration-200"></i>
+                                <div class="bg-blue-600 text-white p-2 rounded-lg group-hover:bg-blue-700 transition-colors"><i data-lucide="users" class="w-6 h-6"></i></div>
+                                <div><h3 class="font-bold text-xl text-blue-900">Kelas ${cls}</h3><p class="text-sm text-blue-600">${classGrades.length} Data Nilai</p></div>
+                                <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 text-blue-400 ml-2 transition-transform"></i>
                             </button>
-                            <button onclick="downloadRekapKelas('${cls}')" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 border border-green-200 transition-all active:scale-95 whitespace-nowrap">
-                                <i data-lucide="download" class="w-4 h-4"></i> Unduh Leger Kelas
-                            </button>
+                            <button onclick="downloadRekapKelas('${cls}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95"><i data-lucide="download" class="w-4 h-4"></i> Download Leger Kelas</button>
                         </div>
-                        <div id="${accordionId}" class="hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm whitespace-nowrap">
-                                    <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
-                                        <tr>
-                                            <th class="p-4 w-10">No</th>
-                                            <th class="p-4">Nama Siswa</th>
-                                            <th class="p-4">Mata Pelajaran</th>
-                                            <th class="p-4">Jenis Asesmen</th>
-                                            <th class="p-4">Materi</th>
-                                            <th class="p-4">Nilai</th>
-                                            <th class="p-4">Catatan</th>
-                                            <th class="p-4 text-center">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
+                        
+                        <div id="${accordionId}" class="hidden p-6 space-y-6">
                     `;
 
-                    classGrades.forEach((g, idx) => {
-                        const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                        const badgeColor = status === 'Tuntas' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
-                        
-                        html += `
-                            <tr class="hover:bg-blue-50/50 transition-colors">
-                                <td class="p-4 text-gray-400 text-xs">${idx + 1}</td>
-                                <td class="p-4">
-                                    <span class="font-bold text-gray-800 block">${g.studentName}</span>
-                                    <span class="text-xs text-gray-400 font-mono">${g.studentNis}</span>
-                                </td>
-                                <td class="p-4 text-gray-600">${g.subject}</td>
-                                <td class="p-4">
-                                    <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-semibold">${g.type}</span>
-                                </td>
-                                <td class="p-4 text-gray-600 max-w-[150px] truncate" title="${g.topic}">${g.topic}</td>
-                                <td class="p-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="font-black text-lg ${g.score >= 90 ? 'text-blue-600' : (g.score < 75 ? 'text-red-500' : 'text-gray-800')}">${g.score}</span>
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${status}</span>
-                                    </div>
-                                </td>
-                                <td class="p-4 max-w-[200px] truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td>
-                                <td class="p-4 flex justify-center gap-2">
-                                    <button onclick="editGrade('${g.id}')" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Edit"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                    <button onclick="deleteGrade('${g.id}')" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </td>
-                            </tr>
-                        `;
+                    // Sub-Group by Assessment (Subject - Type - Topic)
+                    const groupedByAssessment = {};
+                    classGrades.forEach(g => {
+                        const key = `${g.subject} - ${g.type}`;
+                        if (!groupedByAssessment[key]) groupedByAssessment[key] = [];
+                        groupedByAssessment[key].push(g);
                     });
-                    html += `</tbody></table></div></div></div>`;
+
+                    Object.keys(groupedByAssessment).sort().forEach(assessmentKey => {
+                         const assessmentGrades = groupedByAssessment[assessmentKey].sort((a,b) => a.studentName.localeCompare(b.studentName));
+                         
+                         html += `
+                         <div class="border rounded-lg overflow-hidden mb-4">
+                            <div class="bg-gray-100 px-4 py-2 font-bold text-gray-700 flex justify-between items-center border-b border-gray-200">
+                                <div class="flex items-center gap-2"><i data-lucide="book" class="w-4 h-4 text-gray-500"></i> ${assessmentKey}</div>
+                                <span class="text-xs bg-white px-2 py-1 rounded border">${assessmentGrades.length} Siswa</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b"><tr><th class="p-3 w-10">No</th><th class="p-3">Nama Siswa</th><th class="p-3">Materi</th><th class="p-3">Nilai</th><th class="p-3">Status</th><th class="p-3">Catatan</th><th class="p-3 text-center">Aksi</th></tr></thead>
+                                    <tbody class="divide-y divide-gray-100">
+                         `;
+                         
+                         assessmentGrades.forEach((g, idx) => {
+                            const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
+                            const badge = status === 'Tuntas' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
+                            html += `
+                                <tr class="hover:bg-blue-50/30">
+                                    <td class="p-3 text-gray-400 text-xs">${idx+1}</td>
+                                    <td class="p-3 font-bold text-gray-800">${g.studentName}</td>
+                                    <td class="p-3 text-gray-500 text-xs">${g.topic}</td>
+                                    <td class="p-3 font-black text-blue-900">${g.score}</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badge}">${status}</span></td>
+                                    <td class="p-3 max-w-xs truncate text-gray-400 text-xs italic">${g.note}</td>
+                                    <td class="p-3 flex justify-center gap-2">
+                                        <button onclick="editGrade('${g.id}')" class="text-blue-600 p-1"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                        <button onclick="deleteGrade('${g.id}')" class="text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                         });
+                         
+                         html += `</tbody></table></div></div>`;
+                    });
+
+                    html += `</div></div>`;
                 });
             }
             container.innerHTML = html;
@@ -540,44 +541,110 @@
         function toggleAccordion(id) {
             const content = document.getElementById(id);
             const icon = document.getElementById(`icon-${id}`);
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                content.classList.add('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            }
+            if (content.classList.contains('hidden')) { content.classList.remove('hidden'); icon.style.transform = 'rotate(180deg)'; } 
+            else { content.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
         }
 
-        // --- EXPORT PER CLASS ---
+        // --- NEW: SOTM LOGIC (HOMEPAGE) ---
+        function renderStudentOfTheMonth() {
+            // Logic: Group by Student ID -> Calculate Avg -> Determine Grade Level -> Sort Top 3 per Level
+            if (!GLOBAL_GRADES || GLOBAL_GRADES.length === 0) {
+                document.getElementById('sotm-container').innerHTML = '<div class="col-span-3 text-center text-gray-400 py-8">Belum ada data prestasi.</div>';
+                return;
+            }
+
+            const studentStats = {}; // { studentId: { name, class, totalScore, count } }
+
+            GLOBAL_GRADES.forEach(g => {
+                const s = STUDENTS.find(st => st.id === g.studentId);
+                if (s) {
+                    if (!studentStats[s.id]) studentStats[s.id] = { name: s.name, class: s.class, total: 0, count: 0 };
+                    studentStats[s.id].total += g.score;
+                    studentStats[s.id].count += 1;
+                }
+            });
+
+            // Flatten to array
+            const flatStats = Object.values(studentStats).map(stat => ({
+                name: stat.name,
+                class: stat.class,
+                avg: stat.total / stat.count,
+                level: stat.class.charAt(0) // '7', '8', '9'
+            }));
+
+            // Process per level
+            const levels = ['7', '8', '9'];
+            let html = '';
+
+            levels.forEach(lvl => {
+                const topStudents = flatStats
+                    .filter(s => s.level === lvl)
+                    .sort((a, b) => b.avg - a.avg)
+                    .slice(0, 3); // Top 3
+
+                html += `<div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col">
+                            <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-4 text-center">
+                                <h3 class="text-xl font-black text-white tracking-widest">KELAS ${lvl}</h3>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col gap-4">`;
+
+                if (topStudents.length === 0) {
+                    html += `<div class="text-center text-gray-400 text-sm py-4">Belum ada data</div>`;
+                } else {
+                    topStudents.forEach((s, idx) => {
+                        const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : 'rank-3';
+                        const icon = idx === 0 ? 'crown' : idx === 1 ? 'medal' : 'award';
+                        html += `
+                            <div class="flex items-center gap-4 p-3 rounded-xl border-2 ${rankClass} bg-opacity-10">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg bg-white shadow-sm">
+                                    ${idx + 1}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold truncate text-gray-800">${s.name}</p>
+                                    <p class="text-xs text-gray-600">${s.class}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block font-black text-lg">${s.avg.toFixed(1)}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div></div>`;
+            });
+
+            document.getElementById('sotm-container').innerHTML = html;
+        }
+
+        // --- EXPORT PER CLASS (LEGER) ---
         function downloadRekapKelas(className) {
             if (!currentUser) return;
-            const classData = GRADES
-                .filter(g => {
-                    const s = STUDENTS.find(st => st.id === g.studentId);
-                    return s && s.class === className; 
-                })
-                .map(g => {
-                     const s = STUDENTS.find(st => st.id === g.studentId);
-                     return {
-                         NISN: s ? s.nis : '-',
-                         Nama: s ? s.name : 'Unknown',
-                         Mapel: g.subject,
-                         Jenis: g.type,
-                         Materi: g.topic,
-                         Nilai: g.score,
-                         Catatan: g.note ? g.note.replace(/,/g, ' ') : '-'
-                     };
-                });
+            const classGrades = GRADES.filter(g => {
+                const s = STUDENTS.find(st => st.id === g.studentId);
+                return s && s.class === className; 
+            });
             
-            classData.sort((a, b) => a.Nama.localeCompare(b.Nama));
+            if (classGrades.length === 0) return alert("Tidak ada data nilai untuk kelas ini.");
 
-            if (classData.length === 0) return alert("Tidak ada data untuk kelas ini.");
+            const dataToExport = classGrades.map(g => {
+                 const s = STUDENTS.find(st => st.id === g.studentId);
+                 return {
+                     NISN: s ? s.nis : '-',
+                     Nama: s ? s.name : 'Unknown',
+                     Mapel: g.subject,
+                     Jenis: g.type,
+                     Materi: g.topic,
+                     Nilai: g.score,
+                     Catatan: g.note ? g.note.replace(/,/g, ' ') : '-'
+                 };
+            });
+            
+            dataToExport.sort((a, b) => a.Nama.localeCompare(b.Nama) || a.Jenis.localeCompare(b.Jenis));
 
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "NISN,Nama Siswa,Mata Pelajaran,Jenis Asesmen,Materi,Nilai,Catatan\n";
             
-            classData.forEach(row => {
+            dataToExport.forEach(row => {
                 csvContent += `${row.NISN},"${row.Nama}","${row.Mapel}","${row.Jenis}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`;
             });
 
@@ -619,38 +686,6 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-
-        // --- OTHER FUNCTIONS REMAIN SAME ---
-        function renderStudentDashboard() {
-            if (!currentUser) return;
-            const myGrades = GRADES.filter(g => g.studentId === currentUser.id);
-            document.getElementById('student-initial').innerText = currentUser.name.charAt(0);
-            document.getElementById('student-name-display').innerText = currentUser.name;
-            document.getElementById('student-class-display').innerText = "Kelas " + currentUser.class;
-            document.getElementById('student-total-tasks').innerText = myGrades.length;
-            document.getElementById('student-subjects-list').innerHTML = SUBJECTS.map(s => {
-                const count = myGrades.filter(g => g.subject === s.name).length;
-                return `<li class="flex justify-between items-center ${count > 0 ? 'text-gray-800 font-semibold' : 'text-gray-400'}">${s.name} ${count > 0 ? `<span class="bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-bold">${count}</span>` : ''}</li>`;
-            }).join('');
-            document.getElementById('student-grades-list').innerHTML = myGrades.map(g => {
-                const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                return `<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-start md:items-center hover:shadow-lg"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-white bg-blue-900 px-2 py-1 rounded-md">${g.type}</span><span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">${g.topic}</span></div><h4 class="font-bold text-xl text-gray-900">${g.subject}</h4><p class="text-gray-600 text-sm mt-2 italic border-l-2 border-yellow-400 pl-3">"${g.note}"</p></div><div class="text-right"><span class="block text-4xl font-black text-gray-800">${g.score}</span><span class="px-3 py-1 rounded-full text-xs font-semibold ${status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${status}</span></div></div>`;
-            }).join('');
-        }
-        function renderStudentOfTheMonth() {
-            const stats = STUDENTS.map(s => {
-                const g = GRADES.filter(x => x.studentId === s.id);
-                const avg = g.length ? g.reduce((a, b) => a + b.score, 0) / g.length : 0;
-                return { ...s, average: avg, assignmentCount: g.length };
-            }).filter(s => s.assignmentCount > 0).sort((a, b) => b.average - a.average).slice(0, 3);
-            
-            document.getElementById('ranking-container').innerHTML = stats.map((s, i) => {
-                const rank = i + 1;
-                const color = rank === 1 ? 'yellow' : rank === 2 ? 'gray' : 'orange';
-                const height = rank === 1 ? 'h-80' : rank === 2 ? 'h-64' : 'h-56';
-                return `<div class="order-${rank === 1 ? 2 : rank === 2 ? 1 : 3} w-full md:w-1/3 transform hover:-translate-y-2 transition-all"><div class="bg-gradient-to-b from-${color}-50 to-${color}-200 rounded-t-2xl p-6 text-center border-t-8 border-${color}-400 shadow-lg ${height} flex flex-col justify-between relative"><div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-${color}-400 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl shadow-md">${rank}</div><div class="mt-6"><div class="w-16 h-16 mx-auto bg-${color}-300 rounded-full mb-3 flex items-center justify-center text-2xl font-bold text-${color}-900">${s.name.charAt(0)}</div><h3 class="font-bold text-lg text-gray-800">${s.name}</h3><p class="text-sm text-gray-600">${s.class}</p></div><div class="bg-white/80 backdrop-blur rounded-lg p-2 shadow-inner"><span class="text-${color}-600 font-bold">${s.average.toFixed(1)}</span><span class="text-xs block text-gray-400">Rerata Nilai</span></div></div></div>`;
-            }).join('') || '<p class="text-gray-500">Belum ada data.</p>';
         }
 
         // --- IMPORT/EXPORT (Updated Process) ---
