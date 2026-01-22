@@ -29,8 +29,6 @@
         /* Loader Overlay */
         #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
         .hidden-input { display: none; }
-        
-        /* Rank Colors */
         .rank-1 { background: linear-gradient(135deg, #FFF7D1 0%, #FFD700 100%); border-color: #FFD700; color: #854d0e; }
         .rank-2 { background: linear-gradient(135deg, #F3F4F6 0%, #C0C0C0 100%); border-color: #C0C0C0; color: #374151; }
         .rank-3 { background: linear-gradient(135deg, #FFF1E6 0%, #CD7F32 100%); border-color: #CD7F32; color: #7c2d12; }
@@ -93,7 +91,11 @@
                 </div>
                 <p class="text-gray-500">Siswa paling rajin dan berprestasi akademik bulan ini</p>
             </div>
-            <div id="ranking-container" class="flex flex-col md:flex-row items-end justify-center gap-6 px-4"></div>
+            
+            <!-- FIXED ID HERE -->
+            <div id="sotm-container" class="grid lg:grid-cols-3 gap-8 px-4">
+                <div class="col-span-3 text-center text-gray-400 py-8">Memuat data prestasi...</div>
+            </div>
         </section>
 
         <!-- 2. DATA GURU VIEW -->
@@ -119,6 +121,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div><h2 class="text-2xl font-black text-blue-900">Dashboard Guru</h2><p class="text-gray-500">Kelola nilai siswa secara manual atau kolektif.</p></div>
                 <div class="flex flex-wrap gap-3">
+                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="download" class="w-5 h-5"></i> Download Rekap</button>
                     <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif</button>
                 </div>
             </div>
@@ -163,7 +166,7 @@
                 </form>
             </div>
             
-            <!-- REKAM JEJAK NILAI (3-Level Grouping) -->
+            <!-- REKAM JEJAK NILAI (Accordion Per Kelas) -->
             <div id="grades-accordion-container" class="space-y-4">
                  <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">Memuat data nilai...</div>
             </div>
@@ -266,7 +269,7 @@
                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Pilih Mapel (Wajib)</label><select id="import-subject" class="w-full border border-gray-300 rounded p-2 outline-none focus:border-blue-500"></select></div>
                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Judul Bab (Wajib)</label><input type="text" id="import-chapter" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Bab 1 - Bilangan"></div>
                 <div><label class="block text-sm font-bold text-gray-700 mb-1">Jenis Asesmen (Wajib)</label><input type="text" id="import-type" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Sumatif 1"></div>
-                <div><label class="block text-sm font-bold text-gray-700 mb-1">Sub Bab / Topik Materi</label><input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">Sub Bab / Topik</label><input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma"></div>
                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Catatan Umum (Opsional)</label><input type="text" id="import-note" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Biarkan kosong untuk generate catatan otomatis berdasarkan nilai"></div>
             </div>
             <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -652,16 +655,17 @@
             // Download
             const fileName = `Leger_Nilai_${className}_${currentUser.name}.csv`;
             const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // --- NEW: SOTM LOGIC (HOMEPAGE) ---
         function renderStudentOfTheMonth() {
-            const container = document.getElementById('ranking-container');
-            if (!container) return; // Guard clause
-            
-            if (!GLOBAL_GRADES || GLOBAL_GRADES.length === 0) { container.innerHTML = '<div class="col-span-3 text-center text-gray-400 py-8">Belum ada data prestasi.</div>'; return; }
+            if (!GLOBAL_GRADES || GLOBAL_GRADES.length === 0) { document.getElementById('sotm-container').innerHTML = '<div class="col-span-3 text-center text-gray-400 py-8">Belum ada data prestasi.</div>'; return; }
             const studentStats = {}; 
             GLOBAL_GRADES.forEach(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
@@ -684,7 +688,35 @@
                 }
                 html += `</div></div>`;
             });
-            container.innerHTML = html;
+            document.getElementById('sotm-container').innerHTML = html;
+        }
+
+        // --- GLOBAL EXPORT (BACKUP) ---
+        function exportToCSV() {
+            if (!currentUser) return;
+            const dataToExport = GRADES.map(g => {
+                const s = STUDENTS.find(st => st.id === g.studentId);
+                return {
+                    Nama: s ? s.name : "Unknown",
+                    NISN: s ? s.nis : "-",
+                    Kelas: s ? s.class : "-",
+                    Mapel: g.subject,
+                    JenisAsesmen: g.type,
+                    Materi: g.topic,
+                    Nilai: g.score,
+                    Catatan: g.note ? g.note.replace(/,/g, " ") : "-" 
+                };
+            });
+            if (dataToExport.length === 0) { alert("Belum ada data nilai untuk diunduh."); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            csvContent += "Nama Siswa,NISN,Kelas,Mata Pelajaran,Jenis Asesmen,Materi/Topik,Nilai,Catatan Guru\n";
+            dataToExport.forEach(row => { csvContent += `"${row.Nama}",${row.NISN},${row.Kelas},"${row.Mapel}","${row.JenisAsesmen}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`; });
+            const date = new Date().toISOString().slice(0,10);
+            const teacherName = currentUser.name.replace(/\s+/g, '_');
+            const fileName = `Rekap_Nilai_${teacherName}_${date}.csv`;
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         // --- IMPORT/EXPORT (Updated Process) ---
