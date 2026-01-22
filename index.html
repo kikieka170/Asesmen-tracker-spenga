@@ -29,6 +29,8 @@
         /* Loader Overlay */
         #loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
         .hidden-input { display: none; }
+        /* Accordion Transition */
+        .accordion-content { transition: max-height 0.3s ease-in-out; }
     </style>
 </head>
 <body class="bg-white text-gray-900 flex flex-col min-h-screen">
@@ -119,10 +121,13 @@
                 </div>
             </div>
             
+            <!-- FORM INPUT -->
             <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden p-8 border-t-8 border-yellow-400">
                 <h3 class="font-bold text-xl mb-6 text-gray-800 flex items-center gap-2" id="form-title">Input Nilai Manual</h3>
                 <form onsubmit="handleGradeSubmit(event)" class="grid md:grid-cols-2 gap-6">
                     <input type="hidden" id="edit-id" value="">
+                    
+                    <!-- SELECT CLASS FIRST -->
                     <div class="md:col-span-2 grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Langkah 1: Pilih Kelas</label>
@@ -134,6 +139,7 @@
                             <datalist id="student-options"></datalist>
                         </div>
                     </div>
+
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Mata Pelajaran</label><select id="input-subject" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none"></select></div>
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Jenis Asesmen</label><select id="input-type" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none"></select></div>
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Materi / Topik</label><input type="text" id="input-topic" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Contoh: Algoritma" required></div>
@@ -149,8 +155,9 @@
                 </form>
             </div>
             
-            <div id="grades-table-container" class="space-y-6">
-                <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">Memuat data nilai...</div>
+            <!-- REKAM JEJAK NILAI (Accordion Style) -->
+            <div class="space-y-4" id="grades-accordion-container">
+                 <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">Memuat data nilai...</div>
             </div>
         </section>
 
@@ -185,10 +192,14 @@
                 <button onclick="switchAdminTab('students')" id="tab-admin-students" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Siswa</button>
                 <button onclick="switchAdminTab('subjects')" id="tab-admin-subjects" class="px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all">Data Mapel</button>
             </div>
+            
+            <!-- TEACHERS PANEL -->
             <div id="admin-panel-teachers" class="space-y-4">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Guru</h3><button onclick="openAdminModal('teacher')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Guru</button></div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Lengkap</th><th class="p-4">Mata Pelajaran</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-teachers" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
+            
+            <!-- STUDENTS PANEL -->
             <div id="admin-panel-students" class="space-y-4 hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-xl text-gray-800">Daftar Siswa</h3>
@@ -199,13 +210,19 @@
                         <button onclick="openAdminModal('student')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Siswa</button>
                     </div>
                 </div>
+                
                 <p class="text-xs text-gray-500 mt-1 bg-yellow-50 p-2 rounded border border-yellow-100">Format CSV: Nama, NISN, Kelas. Password default = NamaDepan123 (Contoh: Budi123)</p>
+
+                <!-- SEARCH BAR -->
                 <div class="relative">
                     <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa atau kelas (otomatis urut kelas)...">
                     <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
                 </div>
+
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
+            
+            <!-- SUBJECTS PANEL -->
             <div id="admin-panel-subjects" class="space-y-4 hidden">
                 <div class="flex justify-between items-center"><h3 class="font-bold text-xl text-gray-800">Daftar Mata Pelajaran</h3><button onclick="openAdminModal('subject')" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Mapel</button></div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">Nama Mata Pelajaran</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-subjects" class="divide-y divide-gray-100"></tbody></table></div>
@@ -280,143 +297,68 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- 1. FIREBASE CONFIG ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyA7THW53XHZPQtspRs_R1kIfiJ8dmFs7Dw",
-          authDomain: "spenga-sinergi.firebaseapp.com",
-          projectId: "spenga-sinergi",
-          storageBucket: "spenga-sinergi.firebasestorage.app",
-          messagingSenderId: "236285816278",
-          appId: "1:236285816278:web:bbbf85b97963b0ca768877"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyA7THW53XHZPQtspRs_R1kIfiJ8dmFs7Dw", authDomain: "spenga-sinergi.firebaseapp.com", projectId: "spenga-sinergi", storageBucket: "spenga-sinergi.firebasestorage.app", messagingSenderId: "236285816278", appId: "1:236285816278:web:bbbf85b97963b0ca768877" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- 2. STATE ---
         let GRADES = [], TEACHERS = [], SUBJECTS = [], STUDENTS = [], USERS = [];
         let currentUser = null, loginRole = 'student', activeView = 'home';
-        let unsubscribeGrades = null; // Store listener to toggle it
+        let unsubscribeGrades = null; 
         const ASSESSMENT_TYPES = ["Ulangan Harian", "Tugas 1", "Tugas 2", "Tugas 3", "Tugas 4", "Tugas 5", "Unjuk Keahlian", "SAS", "Proyek"];
 
-        // --- 3. INIT ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initFirebaseListeners();
-            lucide.createIcons();
-            switchView('home');
-        });
+        document.addEventListener('DOMContentLoaded', () => { initFirebaseListeners(); lucide.createIcons(); switchView('home'); });
 
         function initFirebaseListeners() {
-            // Static listeners for master data
+            db.collection('users').where('username', '==', 'admin').get().then(snap => { if (snap.empty) db.collection('users').add({ username: 'admin', password: 'admin123', role: 'admin', name: 'Super Admin' }); });
             db.collection('users').onSnapshot(snap => { USERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); });
-            db.collection('teachers').onSnapshot(snap => { 
-                TEACHERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                renderPublicData(); if(activeView === 'admin_dashboard') renderAdminTeachers(); 
+            db.collection('teachers').onSnapshot(snap => { TEACHERS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderPublicData(); if(activeView === 'admin_dashboard') renderAdminTeachers(); });
+            db.collection('students').onSnapshot(snap => { STUDENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); fillFormSelects(); if(activeView === 'admin_dashboard') renderAdminStudents(); if(activeView === 'home') renderStudentOfTheMonth(); });
+            db.collection('subjects').onSnapshot(snap => { SUBJECTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderPublicData(); fillFormSelects(); if(activeView === 'admin_dashboard') renderAdminSubjects(); });
+            db.collection('grades').onSnapshot(snap => { 
+                GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+                document.getElementById('loader').style.opacity = '0'; setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+                if(activeView === 'teacher_dashboard') renderGradeTable();
+                if(activeView === 'student_dashboard') renderStudentDashboard();
+                if(activeView === 'home') renderStudentOfTheMonth();
             });
-            db.collection('students').onSnapshot(snap => { 
-                STUDENTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                fillFormSelects(); 
-                if(activeView === 'admin_dashboard') renderAdminStudents(); 
-                if(activeView === 'home') renderStudentOfTheMonth(); 
-            });
-            db.collection('subjects').onSnapshot(snap => { 
-                SUBJECTS = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-                renderPublicData(); fillFormSelects(); 
-                if(activeView === 'admin_dashboard') renderAdminSubjects(); 
-            });
-            
-            // Auto-create Admin
-            db.collection('users').where('username', '==', 'admin').get().then(snap => {
-                if (snap.empty) db.collection('users').add({ username: 'admin', password: 'admin123', role: 'admin', name: 'Super Admin' });
-            });
-            
-            // Hide initial loader
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-            }, 1000);
         }
 
-        // --- DYNAMIC GRADES LISTENER ---
         function setupRealtimeGrades() {
             if (unsubscribeGrades) { unsubscribeGrades(); unsubscribeGrades = null; }
             if (!currentUser) { GRADES = []; return; }
-
             let query = db.collection('grades');
-
-            // SECURITY FILTERING
-            if (currentUser.role === 'teacher') {
-                query = query.where('teacherId', '==', currentUser.username);
-            } else if (currentUser.role === 'student') {
-                // Ensure we query using the Student ID (Firestore ID)
-                query = query.where('studentId', '==', currentUser.id);
-            }
-            // Admin sees all, no filter added
-
+            if (currentUser.role === 'teacher') query = query.where('teacherId', '==', currentUser.username);
+            else if (currentUser.role === 'student') query = query.where('studentId', '==', currentUser.id);
             unsubscribeGrades = query.onSnapshot(snap => {
                 GRADES = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 if(activeView === 'teacher_dashboard') renderGradeTable();
                 if(activeView === 'student_dashboard') renderStudentDashboard();
-                if(activeView === 'home') renderStudentOfTheMonth(); // Public view might need adjustment if restricted
-            }, err => {
-                console.error("Error fetching grades:", err);
             });
-            
-            // Special case for Home Page (Public Rank):
-            // If user is student/teacher, the above listener is filtered. 
-            // The Home page ranking needs ALL grades to calculate rank.
-            // In a real secure app, you'd use a Cloud Function to aggregate ranks to a public collection.
-            // For this single-file demo, Admin login is best to view full ranks, or we accept partial ranks based on view.
-            // OR: We create a separate global listener just for ranking if needed, but let's stick to the requested privacy model.
         }
 
-        // --- VIEW NAVIGATION ---
         function switchView(viewName) {
             activeView = viewName;
             ['view-home', 'view-teachers', 'view-subjects', 'view-teacher-dashboard', 'view-student-dashboard', 'view-admin-dashboard'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            
             const viewMap = { 'home': 'view-home', 'teachers_list': 'view-teachers', 'subjects_list': 'view-subjects', 'teacher_dashboard': 'view-teacher-dashboard', 'student_dashboard': 'view-student-dashboard', 'admin_dashboard': 'view-admin-dashboard' };
             document.getElementById(viewMap[viewName]).classList.remove('hidden');
-            
-            renderNav(viewName);
-            document.getElementById('mobile-menu').classList.add('hidden');
-            
+            renderNav(viewName); document.getElementById('mobile-menu').classList.add('hidden');
             if (viewName === 'teacher_dashboard') { fillFormSelects(); renderGradeTable(); }
             if (viewName === 'student_dashboard') renderStudentDashboard();
             if (viewName === 'home') renderStudentOfTheMonth(); 
             if (viewName === 'admin_dashboard') switchAdminTab('teachers');
         }
         function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
-        
         function renderNav(active) {
-            const container = document.getElementById('desktop-menu');
-            const mobileContainer = document.getElementById('mobile-menu');
-            let html = '', mobileHtml = '';
+            const container = document.getElementById('desktop-menu'); const mobileContainer = document.getElementById('mobile-menu'); let html = '', mobileHtml = '';
             const btnClass = (isActive) => isActive ? "bg-yellow-400 text-black shadow-md px-5 py-2.5 rounded-full font-bold text-sm transition-all" : "text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-full font-bold text-sm transition-all";
-            
-            html += `<button onclick="switchView('home')" class="${btnClass(active === 'home')}">Beranda</button>`;
-            mobileHtml += `<button onclick="switchView('home')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Beranda</button>`;
-
+            html += `<button onclick="switchView('home')" class="${btnClass(active === 'home')}">Beranda</button>`; mobileHtml += `<button onclick="switchView('home')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Beranda</button>`;
             if (!currentUser) {
-                // Public Menus
-                html += `<button onclick="switchView('teachers_list')" class="${btnClass(active === 'teachers_list')}">Data Guru</button>`;
-                html += `<button onclick="switchView('subjects_list')" class="${btnClass(active === 'subjects_list')}">Mapel</button>`;
-                html += `<button onclick="openLoginModal()" class="ml-4 bg-blue-900 hover:bg-blue-800 text-white px-7 py-2.5 rounded-full font-bold shadow-lg flex items-center gap-2">Masuk</button>`;
-                
-                mobileHtml += `<button onclick="switchView('teachers_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Data Guru</button>`;
-                mobileHtml += `<button onclick="switchView('subjects_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Mata Pelajaran</button>`;
-                mobileHtml += `<button onclick="openLoginModal()" class="block w-full text-left px-4 py-3 rounded-xl bg-yellow-400 text-black font-bold">Masuk Portal</button>`;
+                html += `<button onclick="switchView('teachers_list')" class="${btnClass(active === 'teachers_list')}">Data Guru</button>`; html += `<button onclick="switchView('subjects_list')" class="${btnClass(active === 'subjects_list')}">Mapel</button>`; html += `<button onclick="openLoginModal()" class="ml-4 bg-blue-900 hover:bg-blue-800 text-white px-7 py-2.5 rounded-full font-bold shadow-lg flex items-center gap-2">Masuk</button>`;
+                mobileHtml += `<button onclick="switchView('teachers_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Data Guru</button>`; mobileHtml += `<button onclick="switchView('subjects_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Mata Pelajaran</button>`; mobileHtml += `<button onclick="openLoginModal()" class="block w-full text-left px-4 py-3 rounded-xl bg-yellow-400 text-black font-bold">Masuk Portal</button>`;
             } else {
-                // Role Based Menus
-                if (currentUser.role === 'admin') {
-                     html += `<button onclick="switchView('admin_dashboard')" class="${btnClass(active === 'admin_dashboard')}">Admin Dashboard</button>`;
-                     mobileHtml += `<button onclick="switchView('admin_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Admin Dashboard</button>`;
-                } else if (currentUser.role === 'teacher') {
-                    html += `<button onclick="switchView('teacher_dashboard')" class="${btnClass(active === 'teacher_dashboard')}">Dashboard Guru</button>`;
-                    mobileHtml += `<button onclick="switchView('teacher_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Dashboard Guru</button>`;
-                } else {
-                    html += `<button onclick="switchView('student_dashboard')" class="${btnClass(active === 'student_dashboard')}">Raport Saya</button>`;
-                    mobileHtml += `<button onclick="switchView('student_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Raport Saya</button>`;
-                }
+                if (currentUser.role === 'admin') { html += `<button onclick="switchView('admin_dashboard')" class="${btnClass(active === 'admin_dashboard')}">Admin Dashboard</button>`; mobileHtml += `<button onclick="switchView('admin_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Admin Dashboard</button>`; } 
+                else if (currentUser.role === 'teacher') { html += `<button onclick="switchView('teacher_dashboard')" class="${btnClass(active === 'teacher_dashboard')}">Dashboard Guru</button>`; mobileHtml += `<button onclick="switchView('teacher_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Dashboard Guru</button>`; } 
+                else { html += `<button onclick="switchView('student_dashboard')" class="${btnClass(active === 'student_dashboard')}">Raport Saya</button>`; mobileHtml += `<button onclick="switchView('student_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Raport Saya</button>`; }
                 const roleDisplay = currentUser.role === 'admin' ? 'Administrator' : (currentUser.role === 'teacher' ? 'Guru' : 'Siswa');
                 html += `<div class="flex items-center gap-4 ml-4 pl-4 border-l-2 border-gray-200"><div class="text-right"><p class="text-sm font-black text-blue-900">${currentUser.name}</p><p class="text-xs text-gray-500 font-semibold uppercase">${roleDisplay}</p></div><button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all"><i data-lucide="log-out" class="w-4 h-4"></i></button></div>`;
                 mobileHtml += `<div class="px-4 py-3 text-sm font-bold text-blue-900 bg-blue-50 rounded-xl mb-2">Halo, ${currentUser.name}</div><button onclick="handleLogout()" class="block w-full text-left px-4 py-3 rounded-xl text-red-600 bg-red-50 font-bold">Keluar</button>`;
@@ -424,26 +366,18 @@
             container.innerHTML = html; mobileContainer.innerHTML = mobileHtml; lucide.createIcons();
         }
 
-        // --- PUBLIC RENDER ---
         function renderPublicData() {
             document.getElementById('teachers-grid').innerHTML = TEACHERS.map(t => `<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition"><div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">${t.name.charAt(0)}</div><div><h3 class="font-bold text-gray-800">${t.name}</h3><p class="text-sm text-yellow-600 font-medium">${t.mapel}</p></div></div>`).join('');
             document.getElementById('subjects-grid').innerHTML = SUBJECTS.map(s => `<div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-400 hover:bg-yellow-50 transition cursor-default"><h3 class="font-bold text-gray-800 text-center">${s.name}</h3></div>`).join('');
         }
 
-        // --- AUTH ---
         function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); document.getElementById('login-student-nis').value = ''; setLoginRole('student'); }
         function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
         function setLoginRole(role) {
             loginRole = role;
-            const tabS = document.getElementById('tab-student'), tabT = document.getElementById('tab-teacher');
-            const wrapS = document.getElementById('login-student-wrapper'), wrapT = document.getElementById('login-teacher-wrapper'), hint = document.getElementById('login-hint');
-            if (role === 'student') {
-                tabS.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors"; tabT.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
-                wrapS.classList.remove('hidden'); wrapT.classList.add('hidden'); hint.innerText = "Hint: Siswa/Ortu = siswa123 (Default)";
-            } else {
-                tabT.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors"; tabS.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
-                wrapS.classList.add('hidden'); wrapT.classList.remove('hidden'); hint.innerText = "Hint: Login Guru/Admin";
-            }
+            const tabS = document.getElementById('tab-student'), tabT = document.getElementById('tab-teacher'), wrapS = document.getElementById('login-student-wrapper'), wrapT = document.getElementById('login-teacher-wrapper'), hint = document.getElementById('login-hint');
+            if (role === 'student') { tabS.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors"; tabT.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors"; wrapS.classList.remove('hidden'); wrapT.classList.add('hidden'); hint.innerText = "Hint: Siswa/Ortu = siswa123 (Default)"; } 
+            else { tabT.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors"; tabS.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors"; wrapS.classList.add('hidden'); wrapT.classList.remove('hidden'); hint.innerText = "Hint: Login Guru/Admin"; }
         }
         function handleLoginSubmit(e) {
             e.preventDefault();
@@ -451,32 +385,16 @@
             if (loginRole === 'teacher') {
                 const username = document.getElementById('login-username').value;
                 const user = USERS.find(u => u.username === username && u.password === password);
-                if (user) { 
-                    currentUser = user; 
-                    setupRealtimeGrades(); // TRIGGER SECURE LISTENER
-                    switchView(user.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard'); 
-                    closeLoginModal(); 
-                } else { alert("Username atau Password Salah!"); }
+                if (user) { currentUser = user; setupRealtimeGrades(); switchView(user.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard'); closeLoginModal(); } else { alert("Username atau Password Salah!"); }
             } else {
                 const nisInput = document.getElementById('login-student-nis').value.trim();
                 const s = STUDENTS.find(x => x.nis === nisInput || x.username === nisInput);
                 if (!s) return alert("NISN tidak ditemukan!");
-                if (s && (s.password === password || (!s.password && password === 'siswa123'))) {
-                    currentUser = { role: 'student', ...s };
-                    setupRealtimeGrades(); // TRIGGER SECURE LISTENER
-                    switchView('student_dashboard');
-                    closeLoginModal();
-                } else { alert("Password Salah!"); }
+                if (s && (s.password === password || (!s.password && password === 'siswa123'))) { currentUser = { role: 'student', ...s }; setupRealtimeGrades(); switchView('student_dashboard'); closeLoginModal(); } else { alert("Password Salah!"); }
             }
         }
-        function handleLogout() { 
-            currentUser = null; 
-            if(unsubscribeGrades) { unsubscribeGrades(); unsubscribeGrades = null; }
-            GRADES = [];
-            switchView('home'); 
-        }
+        function handleLogout() { currentUser = null; if(unsubscribeGrades) { unsubscribeGrades(); unsubscribeGrades = null; } GRADES = []; switchView('home'); }
 
-        // --- GURU LOGIC ---
         function fillFormSelects() {
             const classes = [...new Set(STUDENTS.map(s => s.class))].sort();
             document.getElementById('input-class-filter').innerHTML = '<option value="">-- Pilih Kelas --</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -485,118 +403,236 @@
             document.getElementById('import-subject').innerHTML = '<option value="">-- Pilih Mapel --</option>' + SUBJECTS.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
         }
         function filterStudentsByClass() {
-            const cls = document.getElementById('input-class-filter').value;
-            const input = document.getElementById('input-student-search');
-            const datalist = document.getElementById('student-options');
+            const cls = document.getElementById('input-class-filter').value, input = document.getElementById('input-student-search'), datalist = document.getElementById('student-options');
             input.value = ''; datalist.innerHTML = '';
             if (!cls) { input.disabled = true; return; }
             input.disabled = false;
             const filtered = STUDENTS.filter(s => s.class === cls).sort((a, b) => a.name.localeCompare(b.name));
             datalist.innerHTML = filtered.map(s => `<option value="${s.nis} - ${s.name}">`).join('');
         }
-        function updateStatusPreview() {
-            const score = document.getElementById('input-score').value;
-            document.getElementById('status-preview').innerText = `Status: ${score >= 75 ? 'Tuntas' : 'Belum Tuntas'}`;
-        }
+        function updateStatusPreview() { const score = document.getElementById('input-score').value; document.getElementById('status-preview').innerText = `Status: ${score >= 75 ? 'Tuntas' : 'Belum Tuntas'}`; }
         function autoGenerateAI() {
-            const inputValue = document.getElementById('input-student-search').value;
-            const score = parseFloat(document.getElementById('input-score').value);
+            const inputValue = document.getElementById('input-student-search').value, score = parseFloat(document.getElementById('input-score').value);
             if(!inputValue || isNaN(score)) return alert("Isi data dulu.");
-            const nisn = inputValue.split(' - ')[0];
-            const s = STUDENTS.find(x => x.nis === nisn);
+            const nisn = inputValue.split(' - ')[0], s = STUDENTS.find(x => x.nis === nisn);
             if (!s) return alert("Siswa tidak valid.");
             document.getElementById('input-note').value = score >= 90 ? `Luar biasa! ${s.name} sangat menguasai materi.` : score >= 75 ? `Bagus. ${s.name} tuntas.` : `Perlu remedial.`;
         }
         function handleGradeSubmit(e) {
             e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const inputValue = document.getElementById('input-student-search').value;
-            const nisn = inputValue.split(' - ')[0];
-            const s = STUDENTS.find(x => x.nis === nisn);
+            const id = document.getElementById('edit-id').value, inputValue = document.getElementById('input-student-search').value, nisn = inputValue.split(' - ')[0], s = STUDENTS.find(x => x.nis === nisn);
             if (!s) return alert("Pilih siswa dari daftar.");
-            
-            const data = {
-                studentId: s.id, // ID Siswa
-                teacherId: currentUser.username, // AUTO SIGNATURE (Username Guru)
-                subject: document.getElementById('input-subject').value,
-                type: document.getElementById('input-type').value,
-                topic: document.getElementById('input-topic').value,
-                score: parseFloat(document.getElementById('input-score').value),
-                note: document.getElementById('input-note').value,
-                date: new Date().toISOString()
-            };
-            if(id) db.collection('grades').doc(id).update(data);
-            else db.collection('grades').add(data);
+            const data = { studentId: s.id, teacherId: currentUser.username, subject: document.getElementById('input-subject').value, type: document.getElementById('input-type').value, topic: document.getElementById('input-topic').value, score: parseFloat(document.getElementById('input-score').value), note: document.getElementById('input-note').value, date: new Date().toISOString() };
+            if(id) db.collection('grades').doc(id).update(data); else db.collection('grades').add(data);
             resetForm();
         }
         function resetForm() {
-            document.getElementById('form-title').innerText = "Input Nilai Manual";
-            document.getElementById('edit-id').value = "";
-            document.getElementById('input-class-filter').value = "";
-            document.getElementById('input-student-search').value = "";
-            document.getElementById('input-student-search').disabled = true;
-            document.getElementById('input-topic').value = "";
-            document.getElementById('input-score').value = "";
-            document.getElementById('input-note').value = "";
-            document.getElementById('btn-cancel').classList.add('hidden');
+            document.getElementById('form-title').innerText = "Input Nilai Manual"; document.getElementById('edit-id').value = ""; document.getElementById('input-class-filter').value = "";
+            document.getElementById('input-student-search').value = ""; document.getElementById('input-student-search').disabled = true; document.getElementById('input-topic').value = "";
+            document.getElementById('input-score').value = ""; document.getElementById('input-note').value = ""; document.getElementById('btn-cancel').classList.add('hidden');
         }
         function editGrade(id) {
-            const g = GRADES.find(x => x.id == id);
-            const s = STUDENTS.find(x => x.id == g.studentId);
+            const g = GRADES.find(x => x.id == id), s = STUDENTS.find(x => x.id == g.studentId);
             if (s) {
-                document.getElementById('edit-id').value = g.id;
-                document.getElementById('input-class-filter').value = s.class;
-                filterStudentsByClass();
-                document.getElementById('input-student-search').value = `${s.nis} - ${s.name}`;
-                document.getElementById('input-subject').value = g.subject;
-                document.getElementById('input-type').value = g.type;
-                document.getElementById('input-topic').value = g.topic;
-                document.getElementById('input-score').value = g.score;
-                document.getElementById('input-note').value = g.note;
-                document.getElementById('btn-cancel').classList.remove('hidden');
-                window.scrollTo({top:0, behavior:'smooth'});
+                document.getElementById('edit-id').value = g.id; document.getElementById('input-class-filter').value = s.class; filterStudentsByClass();
+                document.getElementById('input-student-search').value = `${s.nis} - ${s.name}`; document.getElementById('input-subject').value = g.subject;
+                document.getElementById('input-type').value = g.type; document.getElementById('input-topic').value = g.topic; document.getElementById('input-score').value = g.score;
+                document.getElementById('input-note').value = g.note; document.getElementById('btn-cancel').classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'});
             }
         }
         function deleteGrade(id) { if(confirm("Hapus nilai?")) db.collection('grades').doc(id).delete(); }
-        
-        // --- RENDER TABLE (GROUPED) ---
+
+        // --- NEW: RENDER GRADE TABLE (ACCORDION) ---
         function renderGradeTable() {
-            const container = document.getElementById('grades-table-container');
+            const container = document.getElementById('grades-accordion-container');
+            
+            // 1. Prepare Data
             const enrichedGrades = GRADES.map(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
                 return { ...g, studentName: s ? s.name : 'Unknown', studentClass: s ? s.class : 'Unknown', studentNis: s ? s.nis : '-' };
             });
+
+            // 2. Grouping: { "Type - Topic": { "7A": [grades...], "7B": [grades...] } }
             const grouped = {};
             enrichedGrades.forEach(g => {
                 const groupKey = `${g.type} - ${g.topic}`;
                 if (!grouped[groupKey]) grouped[groupKey] = {};
-                if (!grouped[groupKey][g.studentClass]) grouped[groupKey][g.studentClass] = [];
-                grouped[groupKey][g.studentClass].push(g);
+                const classKey = g.studentClass;
+                if (!grouped[groupKey][classKey]) grouped[groupKey][classKey] = [];
+                grouped[groupKey][classKey].push(g);
             });
-            
+
+            // 3. Render
             let html = '';
             if (Object.keys(grouped).length === 0) {
                 html = `<div class="text-center p-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">Belum ada data nilai.</div>`;
             } else {
-                for (const [key, classGroups] of Object.entries(grouped)) {
-                    html += `<div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden mb-8"><div class="bg-blue-900 text-white p-4 px-6 border-b border-blue-800"><h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> ${key}</h3></div><div class="p-6 space-y-6">`;
-                    Object.keys(classGroups).sort().forEach(cls => {
-                        const grades = classGroups[cls].sort((a,b) => a.studentName.localeCompare(b.studentName));
-                        html += `<div class="border rounded-lg overflow-hidden"><div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800 flex justify-between"><span>Kelas ${cls}</span><span class="text-xs bg-white px-2 py-1 rounded border">${grades.length} Siswa</span></div><div class="overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-gray-50 text-gray-600 font-semibold border-b"><tr><th class="p-3 w-10">No</th><th class="p-3">Nama Siswa</th><th class="p-3">Nilai</th><th class="p-3">Status</th><th class="p-3">Catatan</th><th class="p-3 text-center">Aksi</th></tr></thead><tbody class="divide-y divide-gray-100">`;
-                        grades.forEach((g, i) => {
+                for (const [assessmentKey, classGroups] of Object.entries(grouped)) {
+                    // Unique ID for toggle
+                    const accordionId = `acc-${assessmentKey.replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 5)}`;
+                    
+                    html += `
+                    <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                        <!-- HEADER ACCORDION -->
+                        <button onclick="toggleAccordion('${accordionId}')" class="w-full bg-blue-50 hover:bg-blue-100 p-4 px-6 border-b border-blue-100 flex justify-between items-center text-left transition-colors">
+                            <h3 class="font-bold text-blue-900 text-lg flex items-center gap-2">
+                                <i data-lucide="folder-open" class="w-5 h-5"></i> ${assessmentKey}
+                            </h3>
+                            <div class="flex items-center gap-2 text-sm text-blue-600 font-semibold">
+                                <span>${Object.keys(classGroups).length} Kelas</span>
+                                <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-200"></i>
+                            </div>
+                        </button>
+                        
+                        <!-- CONTENT ACCORDION (Hidden by default) -->
+                        <div id="${accordionId}" class="hidden p-6 space-y-6 bg-white animate-fade-in">
+                    `;
+                    
+                    const sortedClasses = Object.keys(classGroups).sort();
+                    for (const cls of sortedClasses) {
+                        const classGrades = classGroups[cls];
+                        classGrades.sort((a, b) => a.studentName.localeCompare(b.studentName));
+
+                        html += `
+                            <div class="border rounded-lg overflow-hidden">
+                                <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800 flex justify-between items-center">
+                                    <span>Kelas ${cls}</span>
+                                    <span class="text-xs bg-white px-2 py-1 rounded border border-yellow-200 text-yellow-600">${classGrades.length} Siswa</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr>
+                                                <th class="p-3 w-10">No</th>
+                                                <th class="p-3">Nama Siswa</th>
+                                                <th class="p-3">Nilai</th>
+                                                <th class="p-3">Status</th>
+                                                <th class="p-3">Catatan</th>
+                                                <th class="p-3 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                        `;
+                        classGrades.forEach((g, idx) => {
                             const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                            const color = status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-                            html += `<tr class="hover:bg-gray-50"><td class="p-3 text-gray-400 text-xs">${i+1}</td><td class="p-3 font-bold text-gray-800">${g.studentName} <span class="text-xs font-normal text-gray-400 block">${g.studentNis}</span></td><td class="p-3 font-black text-blue-900">${g.score}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${color}">${status}</span></td><td class="p-3 max-w-xs truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td><td class="p-3 flex gap-2 justify-center"><button onclick="editGrade('${g.id}')" class="text-blue-600 p-1.5"><i data-lucide="edit-2" class="w-4 h-4"></i></button><button onclick="deleteGrade('${g.id}')" class="text-red-600 p-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+                            const badgeColor = status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                            html += `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-3 text-gray-400 text-xs">${idx + 1}</td>
+                                    <td class="p-3 font-bold text-gray-800">${g.studentName} <span class="text-xs font-normal text-gray-400 block">${g.studentNis}</span></td>
+                                    <td class="p-3 font-black text-blue-900">${g.score}</td>
+                                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${status}</span></td>
+                                    <td class="p-3 max-w-xs truncate text-gray-500 italic text-xs" title="${g.note}">${g.note}</td>
+                                    <td class="p-3 flex gap-2 justify-center">
+                                        <button onclick="editGrade('${g.id}')" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                        <button onclick="deleteGrade('${g.id}')" class="text-red-600 hover:bg-red-50 p-1.5 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </td>
+                                </tr>
+                            `;
                         });
                         html += `</tbody></table></div></div>`;
-                    });
+                    }
                     html += `</div></div>`;
                 }
             }
-            container.innerHTML = html; lucide.createIcons();
+            container.innerHTML = html;
+            lucide.createIcons();
         }
 
-        // --- IMPORT ---
+        // --- NEW: TOGGLE FUNCTION ---
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById(`icon-${id}`);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- NEW: EXPORT CSV LOGIC ---
+        function exportToCSV() {
+            if (!currentUser) return;
+            
+            // 1. Ambil data langsung dari variabel global GRADES (yang sudah difilter by NIP)
+            // 2. Gabungkan dengan data siswa untuk mendapatkan detail lengkap
+            const dataToExport = GRADES.map(g => {
+                const s = STUDENTS.find(st => st.id === g.studentId);
+                return {
+                    Nama: s ? s.name : "Unknown",
+                    NISN: s ? s.nis : "-",
+                    Kelas: s ? s.class : "-",
+                    Mapel: g.subject,
+                    JenisAsesmen: g.type,
+                    Materi: g.topic,
+                    Nilai: g.score,
+                    Catatan: g.note ? g.note.replace(/,/g, " ") : "-" // Bersihkan koma agar CSV aman
+                };
+            });
+
+            if (dataToExport.length === 0) {
+                alert("Belum ada data nilai untuk diunduh.");
+                return;
+            }
+
+            // 3. Buat Header & Content CSV
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "\uFEFF"; // BOM untuk Excel
+            csvContent += "Nama Siswa,NISN,Kelas,Mata Pelajaran,Jenis Asesmen,Materi/Topik,Nilai,Catatan Guru\n";
+
+            dataToExport.forEach(row => {
+                csvContent += `"${row.Nama}",${row.NISN},${row.Kelas},"${row.Mapel}","${row.JenisAsesmen}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`;
+            });
+
+            // 4. Generate Filename & Download
+            const date = new Date().toISOString().slice(0,10);
+            const teacherName = currentUser.name.replace(/\s+/g, '_');
+            const fileName = `Rekap_Nilai_${teacherName}_${date}.csv`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- OTHER FUNCTIONS REMAIN SAME ---
+        function renderStudentDashboard() {
+            if (!currentUser) return;
+            const myGrades = GRADES.filter(g => g.studentId === currentUser.id);
+            document.getElementById('student-initial').innerText = currentUser.name.charAt(0);
+            document.getElementById('student-name-display').innerText = currentUser.name;
+            document.getElementById('student-class-display').innerText = "Kelas " + currentUser.class;
+            document.getElementById('student-total-tasks').innerText = myGrades.length;
+            document.getElementById('student-subjects-list').innerHTML = SUBJECTS.map(s => {
+                const count = myGrades.filter(g => g.subject === s.name).length;
+                return `<li class="flex justify-between items-center ${count > 0 ? 'text-gray-800 font-semibold' : 'text-gray-400'}">${s.name} ${count > 0 ? `<span class="bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-bold">${count}</span>` : ''}</li>`;
+            }).join('');
+            document.getElementById('student-grades-list').innerHTML = myGrades.map(g => {
+                const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
+                return `<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-start md:items-center hover:shadow-lg"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-white bg-blue-900 px-2 py-1 rounded-md">${g.type}</span><span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">${g.topic}</span></div><h4 class="font-bold text-xl text-gray-900">${g.subject}</h4><p class="text-gray-600 text-sm mt-2 italic border-l-2 border-yellow-400 pl-3">"${g.note}"</p></div><div class="text-right"><span class="block text-4xl font-black text-gray-800">${g.score}</span><span class="px-3 py-1 rounded-full text-xs font-semibold ${status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${status}</span></div></div>`;
+            }).join('');
+        }
+        function renderStudentOfTheMonth() {
+            const stats = STUDENTS.map(s => {
+                const g = GRADES.filter(x => x.studentId === s.id);
+                const avg = g.length ? g.reduce((a, b) => a + b.score, 0) / g.length : 0;
+                return { ...s, average: avg, assignmentCount: g.length };
+            }).filter(s => s.assignmentCount > 0).sort((a, b) => b.average - a.average).slice(0, 3);
+            
+            document.getElementById('ranking-container').innerHTML = stats.map((s, i) => {
+                const rank = i + 1;
+                const color = rank === 1 ? 'yellow' : rank === 2 ? 'gray' : 'orange';
+                const height = rank === 1 ? 'h-80' : rank === 2 ? 'h-64' : 'h-56';
+                return `<div class="order-${rank === 1 ? 2 : rank === 2 ? 1 : 3} w-full md:w-1/3 transform hover:-translate-y-2 transition-all"><div class="bg-gradient-to-b from-${color}-50 to-${color}-200 rounded-t-2xl p-6 text-center border-t-8 border-${color}-400 shadow-lg ${height} flex flex-col justify-between relative"><div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-${color}-400 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl shadow-md">${rank}</div><div class="mt-6"><div class="w-16 h-16 mx-auto bg-${color}-300 rounded-full mb-3 flex items-center justify-center text-2xl font-bold text-${color}-900">${s.name.charAt(0)}</div><h3 class="font-bold text-lg text-gray-800">${s.name}</h3><p class="text-sm text-gray-600">${s.class}</p></div><div class="bg-white/80 backdrop-blur rounded-lg p-2 shadow-inner"><span class="text-${color}-600 font-bold">${s.average.toFixed(1)}</span><span class="text-xs block text-gray-400">Rerata Nilai</span></div></div></div>`;
+            }).join('') || '<p class="text-gray-500">Belum ada data.</p>';
+        }
+
+        // --- IMPORT/EXPORT (Updated Process) ---
         function processGradeImport() {
             const raw = document.getElementById('import-data').value;
             const subject = document.getElementById('import-subject').value;
@@ -645,24 +681,7 @@
         function downloadGradeTemplate() { const csv = "NIS,Nilai\n12345,90\n"; const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = "Template_Import_Nilai.csv"; a.click(); }
         function handleFileUpload(input) { if(input.files[0]) { const r = new FileReader(); r.onload = (e) => document.getElementById('import-data').value = e.target.result; r.readAsText(input.files[0]); } }
         
-        // --- ADMIN & STUDENT DASHBOARDS (UNCHANGED LOGIC) ---
-        function renderStudentDashboard() {
-            if (!currentUser) return;
-            const myGrades = GRADES.filter(g => g.studentId === currentUser.id); // Secure filtered by listener
-            document.getElementById('student-initial').innerText = currentUser.name.charAt(0);
-            document.getElementById('student-name-display').innerText = currentUser.name;
-            document.getElementById('student-class-display').innerText = "Kelas " + currentUser.class;
-            document.getElementById('student-total-tasks').innerText = myGrades.length;
-            document.getElementById('student-subjects-list').innerHTML = SUBJECTS.map(s => {
-                const count = myGrades.filter(g => g.subject === s.name).length;
-                return `<li class="flex justify-between items-center ${count > 0 ? 'text-gray-800 font-semibold' : 'text-gray-400'}">${s.name} ${count > 0 ? `<span class="bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-bold">${count}</span>` : ''}</li>`;
-            }).join('');
-            document.getElementById('student-grades-list').innerHTML = myGrades.map(g => {
-                const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                return `<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-start md:items-center hover:shadow-lg"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-white bg-blue-900 px-2 py-1 rounded-md">${g.type}</span><span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">${g.topic}</span></div><h4 class="font-bold text-xl text-gray-900">${g.subject}</h4><p class="text-gray-600 text-sm mt-2 italic border-l-2 border-yellow-400 pl-3">"${g.note}"</p></div><div class="text-right"><span class="block text-4xl font-black text-gray-800">${g.score}</span><span class="px-3 py-1 rounded-full text-xs font-semibold ${status === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${status}</span></div></div>`;
-            }).join('');
-        }
-        function renderStudentOfTheMonth() { /* Standard Logic */ }
+        // Admin functions unchanged
         function switchAdminTab(tab) {
             ['teachers', 'students', 'subjects'].forEach(t => { document.getElementById(`tab-admin-${t}`).className = "px-6 py-3 font-bold text-sm text-gray-500 hover:bg-gray-50 rounded-t-lg transition-all"; document.getElementById(`admin-panel-${t}`).classList.add('hidden'); });
             document.getElementById(`tab-admin-${tab}`).className = "px-6 py-3 font-bold text-sm border-b-4 border-yellow-400 text-blue-900 bg-yellow-50 rounded-t-lg transition-all";
@@ -677,8 +696,6 @@
             document.getElementById('admin-table-students').innerHTML = filtered.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-mono text-xs text-gray-500">${s.nis||'-'}</td><td class="p-4 font-bold">${s.name}</td><td class="p-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${s.class}</span></td><td class="p-4 font-mono text-xs text-blue-600">${s.username||'-'}</td><td class="p-4 font-mono text-xs text-gray-400">${s.password||'******'}</td><td class="p-4 text-right"><button onclick="editAdminData('student','${s.id}')" class="text-blue-600">Edit</button> <button onclick="deleteAdminData('students','${s.id}')" class="text-red-600">Hapus</button></td></tr>`).join(''); 
         }
         function renderAdminSubjects() { document.getElementById('admin-table-subjects').innerHTML = SUBJECTS.map(s => `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="p-4 font-bold">${s.name}</td><td class="p-4 text-right"><button onclick="editAdminData('subject','${s.id}')" class="text-blue-600">Edit</button> <button onclick="deleteAdminData('subjects','${s.id}')" class="text-red-600">Hapus</button></td></tr>`).join(''); }
-        
-        // --- ADMIN MODAL FUNCTIONS (Standard) ---
         function openAdminModal(type) {
             document.getElementById('admin-modal').classList.remove('hidden');
             document.getElementById('admin-data-type').value = type;
@@ -707,7 +724,6 @@
             closeAdminModal();
         }
         function deleteAdminData(col, id) { if(confirm("Hapus data ini?")) db.collection(col).doc(id).delete(); }
-        // Admin Edit functions (Standard population logic omitted for brevity, assumes standard flow)
         function editAdminData(type, id) { openAdminModal(type); document.getElementById('admin-edit-id').value = id; /* populate fields */ }
     </script>
 </body>
