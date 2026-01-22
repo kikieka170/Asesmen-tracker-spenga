@@ -86,22 +86,14 @@
                     </button>
                 </div>
             </div>
-
-            <!-- STUDENT OF THE MONTH SECTION -->
-            <div class="mb-12">
-                <div class="text-center mb-10">
-                    <div class="inline-flex items-center justify-center gap-3 mb-2">
-                        <i data-lucide="trophy" class="text-yellow-500 w-10 h-10"></i>
-                        <h2 class="text-3xl font-black text-blue-900 uppercase tracking-wide">Student of The Month</h2>
-                    </div>
-                    <p class="text-gray-500">Siswa dengan rata-rata nilai tertinggi bulan ini</p>
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center gap-3 mb-2">
+                    <i data-lucide="trophy" class="text-yellow-500 w-10 h-10"></i>
+                    <h2 class="text-3xl font-black text-blue-900 uppercase tracking-wide">Student of The Month</h2>
                 </div>
-
-                <!-- Grid Angkatan -->
-                <div class="grid lg:grid-cols-3 gap-8" id="sotm-container">
-                    <div class="col-span-3 text-center text-gray-400 py-8">Memuat data prestasi...</div>
-                </div>
+                <p class="text-gray-500">Siswa paling rajin dan berprestasi akademik bulan ini</p>
             </div>
+            <div id="ranking-container" class="flex flex-col md:flex-row items-end justify-center gap-6 px-4"></div>
         </section>
 
         <!-- 2. DATA GURU VIEW -->
@@ -127,7 +119,6 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div><h2 class="text-2xl font-black text-blue-900">Dashboard Guru</h2><p class="text-gray-500">Kelola nilai siswa secara manual atau kolektif.</p></div>
                 <div class="flex flex-wrap gap-3">
-                    <button onclick="exportToCSV()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="download" class="w-5 h-5"></i> Download Rekap</button>
                     <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif</button>
                 </div>
             </div>
@@ -152,8 +143,13 @@
                     </div>
 
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Mata Pelajaran</label><select id="input-subject" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none"></select></div>
+                    
+                    <!-- New Chapter Field -->
+                    <div><label class="block text-sm font-bold text-gray-700 mb-2">Judul Bab</label><input type="text" id="input-chapter" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none focus:border-yellow-400" placeholder="Contoh: Bab 1 - Bilangan" required></div>
+
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Jenis Asesmen</label><select id="input-type" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none"></select></div>
-                    <div><label class="block text-sm font-bold text-gray-700 mb-2">Materi / Topik</label><input type="text" id="input-topic" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Contoh: Algoritma" required></div>
+                    <div><label class="block text-sm font-bold text-gray-700 mb-2">Sub Bab / Topik Materi</label><input type="text" id="input-topic" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="Contoh: Operasi Hitung" required></div>
+                    
                     <div><label class="block text-sm font-bold text-gray-700 mb-2">Nilai (0-100)</label><input type="number" id="input-score" min="0" max="100" class="w-full border-2 border-gray-200 rounded-xl p-3 outline-none" placeholder="0" required oninput="updateStatusPreview()"><p class="text-xs mt-2 font-bold text-blue-900" id="status-preview">Status: -</p></div>
                     
                     <div class="md:col-span-2">
@@ -167,13 +163,13 @@
                 </form>
             </div>
             
-            <!-- REKAM JEJAK NILAI (Accordion Per Kelas) -->
+            <!-- REKAM JEJAK NILAI (3-Level Grouping) -->
             <div id="grades-accordion-container" class="space-y-4">
                  <div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">Memuat data nilai...</div>
             </div>
         </section>
 
-        <!-- 5. DASHBOARD SISWA -->
+        <!-- 5. STUDENT DASHBOARD -->
         <section id="view-student-dashboard" class="animate-fade-in hidden space-y-8">
             <div class="bg-black text-white rounded-3xl p-8 shadow-xl border-l-8 border-yellow-400 relative overflow-hidden">
                 <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
@@ -220,8 +216,7 @@
                 </div>
                 <p class="text-xs text-gray-500 mt-1 bg-yellow-50 p-2 rounded border border-yellow-100">Format CSV: Nama, NISN, Kelas. Password default = NamaDepan123 (Contoh: Budi123)</p>
                 <div class="relative">
-                    <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa atau kelas (otomatis urut kelas)...">
-                    <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
+                    <input type="text" id="search-student" oninput="renderAdminStudents()" class="w-full border border-gray-300 rounded-lg p-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm" placeholder="Cari nama siswa..."><i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
                 </div>
                 <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-100 text-gray-600 font-bold"><tr><th class="p-4">NIS</th><th class="p-4">Nama Siswa</th><th class="p-4">Kelas</th><th class="p-4">Username</th><th class="p-4">Password</th><th class="p-4 text-right">Aksi</th></tr></thead><tbody id="admin-table-students" class="divide-y divide-gray-100"></tbody></table></div>
             </div>
@@ -262,15 +257,16 @@
         </div>
     </div>
 
-    <!-- GRADE IMPORT MODAL -->
+    <!-- IMPORT MODAL -->
     <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm hidden">
         <div class="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl relative animate-fade-in">
             <button onclick="closeImportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
             <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2"><i data-lucide="file-spreadsheet"></i> Import Nilai Kolektif</h2>
             <div class="grid md:grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Pilih Mapel (Wajib)</label><select id="import-subject" class="w-full border border-gray-300 rounded p-2 outline-none focus:border-blue-500"></select></div>
+                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Judul Bab (Wajib)</label><input type="text" id="import-chapter" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Bab 1 - Bilangan"></div>
                 <div><label class="block text-sm font-bold text-gray-700 mb-1">Jenis Asesmen (Wajib)</label><input type="text" id="import-type" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Sumatif 1"></div>
-                <div><label class="block text-sm font-bold text-gray-700 mb-1">Materi/Topik</label><input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma"></div>
+                <div><label class="block text-sm font-bold text-gray-700 mb-1">Sub Bab / Topik Materi</label><input type="text" id="import-topic" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Contoh: Algoritma"></div>
                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Catatan Umum (Opsional)</label><input type="text" id="import-note" class="w-full border border-gray-300 rounded p-2 outline-none" placeholder="Biarkan kosong untuk generate catatan otomatis berdasarkan nilai"></div>
             </div>
             <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -286,6 +282,24 @@
         </div>
     </div>
 
+    <!-- NEW EDIT MODAL -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative">
+            <button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-blue-900 mb-4">Edit Data Nilai</h2>
+            <form onsubmit="handleEditSubmit(event)" class="space-y-4">
+                <input type="hidden" id="edit-modal-id">
+                <div><label class="block text-sm font-bold text-gray-700">Nama Siswa</label><input type="text" id="edit-student-name" class="w-full border bg-gray-100 rounded p-2" disabled></div>
+                <div><label class="block text-sm font-bold text-gray-700">Judul Bab</label><input type="text" id="edit-chapter" class="w-full border rounded p-2" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">Jenis Asesmen</label><input type="text" id="edit-type" class="w-full border rounded p-2" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">Sub Bab / Topik Materi</label><input type="text" id="edit-topic" class="w-full border rounded p-2" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">Nilai</label><input type="number" id="edit-score" class="w-full border rounded p-2" required></div>
+                <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeEditModal()" class="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-lg">Batal</button><button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow">Simpan Perubahan</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN MODAL -->
     <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm hidden">
         <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative">
             <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
@@ -430,6 +444,7 @@
                 subject: document.getElementById('input-subject').value,
                 type: document.getElementById('input-type').value,
                 topic: document.getElementById('input-topic').value,
+                chapter: document.getElementById('input-chapter').value || "Bab Umum", // NEW FIELD
                 score: parseFloat(document.getElementById('input-score').value),
                 note: document.getElementById('input-note').value,
                 date: new Date().toISOString()
@@ -439,7 +454,7 @@
         }
         function resetForm() {
             document.getElementById('form-title').innerText = "Input Nilai Manual"; document.getElementById('edit-id').value = ""; document.getElementById('input-class-filter').value = "";
-            document.getElementById('input-student-search').value = ""; document.getElementById('input-student-search').disabled = true; document.getElementById('input-topic').value = ""; 
+            document.getElementById('input-student-search').value = ""; document.getElementById('input-student-search').disabled = true; document.getElementById('input-topic').value = ""; document.getElementById('input-chapter').value = "";
             document.getElementById('input-score').value = ""; document.getElementById('input-note').value = ""; document.getElementById('btn-cancel').classList.add('hidden');
         }
         function editGrade(id) {
@@ -453,37 +468,61 @@
         }
         function deleteGrade(id) { if(confirm("Hapus nilai?")) db.collection('grades').doc(id).delete(); }
         
-        // --- RENDER GRADE TABLE (GROUPED BY CLASS -> ASSESSMENT) ---
+        // --- NEW: EDIT FEATURE ---
+        function openEditGradeModal(id) {
+            const g = GRADES.find(x => x.id == id); const s = STUDENTS.find(st => st.id === g.studentId);
+            if (!g || !s) return;
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('edit-modal-id').value = g.id;
+            document.getElementById('edit-student-name').value = s.name;
+            document.getElementById('edit-chapter').value = g.chapter || "Bab Umum";
+            document.getElementById('edit-type').value = g.type;
+            document.getElementById('edit-topic').value = g.topic;
+            document.getElementById('edit-score').value = g.score;
+        }
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+        function handleEditSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-modal-id').value;
+            db.collection('grades').doc(id).update({
+                chapter: document.getElementById('edit-chapter').value,
+                type: document.getElementById('edit-type').value,
+                topic: document.getElementById('edit-topic').value,
+                score: parseFloat(document.getElementById('edit-score').value)
+            }).then(() => { closeEditModal(); });
+        }
+        
+        // --- NEW: RENDER 3-LEVEL NESTED ---
         function renderGradeTable() {
             const container = document.getElementById('grades-accordion-container');
             const enrichedGrades = GRADES.map(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
-                return { ...g, studentName: s ? s.name : 'Unknown', studentClass: s ? s.class : 'Unknown', studentNis: s ? s.nis : '-' };
+                return { ...g, studentName: s ? s.name : 'Unknown', studentClass: s ? s.class : 'Unknown', studentNis: s ? s.nis : '-', chapter: g.chapter || "Bab Umum" };
             });
 
-            const groupedByClass = {};
+            // Group: Class -> Chapter
+            const grouped = {};
             enrichedGrades.forEach(g => {
-                const cls = g.studentClass;
-                if (!groupedByClass[cls]) groupedByClass[cls] = [];
-                groupedByClass[cls].push(g);
+                if (!grouped[g.studentClass]) grouped[g.studentClass] = {};
+                if (!grouped[g.studentClass][g.chapter]) grouped[g.studentClass][g.chapter] = [];
+                grouped[g.studentClass][g.chapter].push(g);
             });
 
             let html = '';
-            const sortedClasses = Object.keys(groupedByClass).sort();
+            const sortedClasses = Object.keys(grouped).sort();
 
-            if (sortedClasses.length === 0) {
-                html = `<div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">Belum ada data nilai.</div>`;
-            } else {
+            if (sortedClasses.length === 0) html = `<div class="text-center p-12 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">Belum ada data nilai.</div>`;
+            else {
                 sortedClasses.forEach(cls => {
-                    const classGrades = groupedByClass[cls];
                     const accordionId = `acc-cls-${cls.replace(/\s+/g, '-')}`;
-
+                    const classChapters = grouped[cls];
+                    
                     html += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 hover:shadow-md transition-all">
                         <div class="p-4 flex flex-col sm:flex-row justify-between items-center bg-blue-50 border-b border-blue-100">
                             <button onclick="toggleAccordion('${accordionId}')" class="flex-1 flex items-center gap-3 text-left w-full focus:outline-none group">
                                 <div class="bg-blue-600 text-white p-2 rounded-lg group-hover:bg-blue-700 transition-colors"><i data-lucide="users" class="w-6 h-6"></i></div>
-                                <div><h3 class="font-bold text-xl text-blue-900">Kelas ${cls}</h3><p class="text-sm text-blue-600">${classGrades.length} Data Nilai</p></div>
+                                <div><h3 class="font-bold text-xl text-blue-900">Kelas ${cls}</h3></div>
                                 <i id="icon-${accordionId}" data-lucide="chevron-down" class="w-5 h-5 text-blue-400 ml-2 transition-transform"></i>
                             </button>
                             <button onclick="downloadRekapKelas('${cls}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95 whitespace-nowrap">
@@ -493,52 +532,40 @@
                         
                         <div id="${accordionId}" class="hidden p-6 space-y-6">
                     `;
-
-                    // Sub-Group by Assessment (Subject - Type - Topic)
-                    const groupedByAssessment = {};
-                    classGrades.forEach(g => {
-                        const key = `${g.subject} - ${g.type}`;
-                        if (!groupedByAssessment[key]) groupedByAssessment[key] = [];
-                        groupedByAssessment[key].push(g);
-                    });
-
-                    Object.keys(groupedByAssessment).sort().forEach(assessmentKey => {
-                         const assessmentGrades = groupedByAssessment[assessmentKey].sort((a,b) => a.studentName.localeCompare(b.studentName));
-                         
-                         html += `
-                         <div class="border rounded-lg overflow-hidden mb-4">
+                    
+                    // Level 2: Chapters
+                    Object.keys(classChapters).sort().forEach(chap => {
+                        const grades = classChapters[chap].sort((a,b) => a.studentName.localeCompare(b.studentName));
+                        
+                        html += `
+                        <div class="border rounded-lg overflow-hidden mb-4">
                             <div class="bg-gray-100 px-4 py-2 font-bold text-gray-700 flex justify-between items-center border-b border-gray-200">
-                                <div class="flex items-center gap-2"><i data-lucide="book" class="w-4 h-4 text-gray-500"></i> ${assessmentKey}</div>
-                                <span class="text-xs bg-white px-2 py-1 rounded border">${assessmentGrades.length} Siswa</span>
+                                <div class="flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4 text-gray-500"></i> ${chap}</div>
+                                <span class="text-xs bg-white px-2 py-1 rounded border">${grades.length} Data</span>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm whitespace-nowrap">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b"><tr><th class="p-3 w-10">No</th><th class="p-3">Nama Siswa</th><th class="p-3">Materi</th><th class="p-3">Nilai</th><th class="p-3">Status</th><th class="p-3">Catatan</th><th class="p-3 text-center">Aksi</th></tr></thead>
+                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b"><tr><th class="p-3 w-10">No</th><th class="p-3">Nama Siswa</th><th class="p-3">Jenis</th><th class="p-3">Sub Bab</th><th class="p-3">Nilai</th><th class="p-3 text-center">Aksi</th></tr></thead>
                                     <tbody class="divide-y divide-gray-100">
-                         `;
-                         
-                         assessmentGrades.forEach((g, idx) => {
-                            const status = g.score >= 75 ? 'Tuntas' : 'Belum Tuntas';
-                            const badge = status === 'Tuntas' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
+                        `;
+                        
+                        grades.forEach((g, idx) => {
                             html += `
                                 <tr class="hover:bg-blue-50/30">
                                     <td class="p-3 text-gray-400 text-xs">${idx+1}</td>
                                     <td class="p-3 font-bold text-gray-800">${g.studentName}</td>
+                                    <td class="p-3"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${g.type}</span></td>
                                     <td class="p-3 text-gray-500 text-xs">${g.topic}</td>
                                     <td class="p-3 font-black text-blue-900">${g.score}</td>
-                                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badge}">${status}</span></td>
-                                    <td class="p-3 max-w-xs truncate text-gray-400 text-xs italic">${g.note}</td>
                                     <td class="p-3 flex justify-center gap-2">
-                                        <button onclick="editGrade('${g.id}')" class="text-blue-600 p-1"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                        <button onclick="openEditGradeModal('${g.id}')" class="text-blue-600 p-1"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                                         <button onclick="deleteGrade('${g.id}')" class="text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                     </td>
                                 </tr>
                             `;
-                         });
-                         
-                         html += `</tbody></table></div></div>`;
+                        });
+                        html += `</tbody></table></div></div>`;
                     });
-
                     html += `</div></div>`;
                 });
             }
@@ -546,6 +573,7 @@
             lucide.createIcons();
         }
 
+        // Toggle Function
         function toggleAccordion(id) {
             const content = document.getElementById(id);
             const icon = document.getElementById(`icon-${id}`);
@@ -553,7 +581,7 @@
             else { content.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
         }
 
-        // --- EXPORT PER CLASS ---
+        // --- NEW: PIVOT TABLE DOWNLOAD ---
         function downloadRekapKelas(className) {
             if (!currentUser) return;
             const classGrades = GRADES.filter(g => {
@@ -563,65 +591,87 @@
             
             if (classGrades.length === 0) return alert("Tidak ada data nilai untuk kelas ini.");
 
-            const dataToExport = classGrades.map(g => {
-                 const s = STUDENTS.find(st => st.id === g.studentId);
-                 return {
-                     NISN: s ? s.nis : '-',
-                     Nama: s ? s.name : 'Unknown',
-                     Mapel: g.subject,
-                     Jenis: g.type,
-                     Materi: g.topic,
-                     Nilai: g.score,
-                     Catatan: g.note ? g.note.replace(/,/g, ' ') : '-'
-                 };
+            // 1. Prepare Columns (Unique Chapter + Type)
+            const uniqueCols = new Set();
+            const uniqueChapters = new Set();
+            classGrades.forEach(g => {
+                const chap = g.chapter || "Bab Umum";
+                uniqueChapters.add(chap);
+                uniqueCols.add(`${chap} - ${g.type}`);
             });
-            
-            dataToExport.sort((a, b) => a.Nama.localeCompare(b.Nama) || a.Jenis.localeCompare(b.Jenis));
+            const sortedCols = Array.from(uniqueCols).sort();
+            const sortedChapters = Array.from(uniqueChapters).sort();
 
+            // 2. Map Student Data
+            const studentMap = {};
+            classGrades.forEach(g => {
+                const chap = g.chapter || "Bab Umum";
+                if (!studentMap[g.studentId]) {
+                    const s = STUDENTS.find(st => st.id === g.studentId);
+                    studentMap[g.studentId] = { NISN: s ? s.nis : '-', Nama: s ? s.name : 'Unknown', Kelas: className, Scores: {}, ChapTotals: {} };
+                }
+                const colKey = `${chap} - ${g.type}`;
+                // Handle multiple scores for same type by taking latest or avg? Taking latest for simplicity in Pivot
+                studentMap[g.studentId].Scores[colKey] = g.score;
+                
+                if (!studentMap[g.studentId].ChapTotals[chap]) studentMap[g.studentId].ChapTotals[chap] = { sum: 0, count: 0 };
+                studentMap[g.studentId].ChapTotals[chap].sum += g.score;
+                studentMap[g.studentId].ChapTotals[chap].count += 1;
+            });
+
+            // 3. Header
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "NISN,Nama Siswa,Mata Pelajaran,Jenis Asesmen,Materi,Nilai,Catatan\n";
-            
-            dataToExport.forEach(row => {
-                csvContent += `${row.NISN},"${row.Nama}","${row.Mapel}","${row.Jenis}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`;
+            let headers = ["NISN", "Nama Siswa", "Kelas"];
+            sortedChapters.forEach(chap => {
+                sortedCols.filter(c => c.startsWith(chap)).forEach(c => headers.push(c));
+                headers.push(`Rata-rata ${chap}`);
+            });
+            headers.push("Rata-rata Total");
+            csvContent += headers.join(",") + "\n";
+
+            // 4. Rows
+            Object.values(studentMap).sort((a,b) => a.Nama.localeCompare(b.Nama)).forEach(s => {
+                let row = [`"${s.NISN}"`, `"${s.Nama}"`, `"${s.Kelas}"`];
+                let grandSum = 0, grandCount = 0;
+                
+                sortedChapters.forEach(chap => {
+                    sortedCols.filter(c => c.startsWith(chap)).forEach(c => {
+                        row.push(s.Scores[c] || "");
+                    });
+                    const chapData = s.ChapTotals[chap];
+                    if (chapData) {
+                        row.push((chapData.sum / chapData.count).toFixed(2));
+                        grandSum += chapData.sum; grandCount += chapData.count;
+                    } else { row.push(""); }
+                });
+                
+                row.push(grandCount > 0 ? (grandSum / grandCount).toFixed(2) : "");
+                csvContent += row.join(",") + "\n";
             });
 
-            const teacherNameSafe = currentUser.name.replace(/[^a-z0-9]/gi, '_');
-            const fileName = `Leger_Nilai_${className}_${teacherNameSafe}.csv`;
-            
+            // Download
+            const fileName = `Leger_Nilai_${className}_${currentUser.name}.csv`;
             const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", fileName);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         // --- NEW: SOTM LOGIC (HOMEPAGE) ---
         function renderStudentOfTheMonth() {
-            if (!GLOBAL_GRADES || GLOBAL_GRADES.length === 0) {
-                document.getElementById('sotm-container').innerHTML = '<div class="col-span-3 text-center text-gray-400 py-8">Belum ada data prestasi.</div>';
-                return;
-            }
-
+            const container = document.getElementById('ranking-container');
+            if (!container) return; // Guard clause
+            
+            if (!GLOBAL_GRADES || GLOBAL_GRADES.length === 0) { container.innerHTML = '<div class="col-span-3 text-center text-gray-400 py-8">Belum ada data prestasi.</div>'; return; }
             const studentStats = {}; 
-
             GLOBAL_GRADES.forEach(g => {
                 const s = STUDENTS.find(st => st.id === g.studentId);
                 if (s) {
                     if (!studentStats[s.id]) studentStats[s.id] = { name: s.name, class: s.class, total: 0, count: 0 };
-                    studentStats[s.id].total += g.score;
-                    studentStats[s.id].count += 1;
+                    studentStats[s.id].total += g.score; studentStats[s.id].count += 1;
                 }
             });
-
-            const flatStats = Object.values(studentStats).map(stat => ({
-                name: stat.name, class: stat.class, avg: stat.total / stat.count, level: stat.class.charAt(0)
-            }));
-
-            const levels = ['7', '8', '9'];
-            let html = '';
-
+            const flatStats = Object.values(studentStats).map(stat => ({ name: stat.name, class: stat.class, avg: stat.total / stat.count, level: stat.class.charAt(0) }));
+            const levels = ['7', '8', '9']; let html = '';
             levels.forEach(lvl => {
                 const topStudents = flatStats.filter(s => s.level === lvl).sort((a, b) => b.avg - a.avg).slice(0, 3);
                 html += `<div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col"><div class="bg-gradient-to-r from-blue-900 to-blue-800 p-4 text-center"><h3 class="text-xl font-black text-white tracking-widest">KELAS ${lvl}</h3></div><div class="p-6 flex-1 flex flex-col gap-4">`;
@@ -634,35 +684,7 @@
                 }
                 html += `</div></div>`;
             });
-            document.getElementById('sotm-container').innerHTML = html;
-        }
-
-        // --- GLOBAL EXPORT (BACKUP) ---
-        function exportToCSV() {
-            if (!currentUser) return;
-            const dataToExport = GRADES.map(g => {
-                const s = STUDENTS.find(st => st.id === g.studentId);
-                return {
-                    Nama: s ? s.name : "Unknown",
-                    NISN: s ? s.nis : "-",
-                    Kelas: s ? s.class : "-",
-                    Mapel: g.subject,
-                    JenisAsesmen: g.type,
-                    Materi: g.topic,
-                    Nilai: g.score,
-                    Catatan: g.note ? g.note.replace(/,/g, " ") : "-" 
-                };
-            });
-            if (dataToExport.length === 0) { alert("Belum ada data nilai untuk diunduh."); return; }
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "Nama Siswa,NISN,Kelas,Mata Pelajaran,Jenis Asesmen,Materi/Topik,Nilai,Catatan Guru\n";
-            dataToExport.forEach(row => { csvContent += `"${row.Nama}",${row.NISN},${row.Kelas},"${row.Mapel}","${row.JenisAsesmen}","${row.Materi}",${row.Nilai},"${row.Catatan}"\n`; });
-            const date = new Date().toISOString().slice(0,10);
-            const teacherName = currentUser.name.replace(/\s+/g, '_');
-            const fileName = `Rekap_Nilai_${teacherName}_${date}.csv`;
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", fileName);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            container.innerHTML = html;
         }
 
         // --- IMPORT/EXPORT (Updated Process) ---
@@ -671,6 +693,7 @@
             const subject = document.getElementById('import-subject').value;
             const type = document.getElementById('import-type').value;
             const topic = document.getElementById('import-topic').value;
+            const chapter = document.getElementById('import-chapter').value; // NEW
             const noteInput = document.getElementById('import-note').value;
             if(!raw) return alert("Data kosong");
             if(!subject || !type) return alert("Lengkapi data mapel/asesmen.");
@@ -697,7 +720,7 @@
                                 batch.set(ref, { 
                                     studentId: s.id, 
                                     teacherId: currentUser.username, 
-                                    subject: subject, topic: topic || "Topik Umum", type: type, 
+                                    subject: subject, topic: topic || "Topik Umum", chapter: chapter || "Bab Umum", type: type, 
                                     score: score, note: finalNote, date: new Date().toISOString() 
                                 });
                                 count++;
